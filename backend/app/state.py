@@ -8,6 +8,13 @@ class BugMetadata(BaseModel):
     bug_type: str  # LINTING, SYNTAX, LOGIC, TYPE_ERROR, IMPORT, INDENTATION
     action: str = "FIX"  # FIX or DELETE
 
+class CommitEntry(BaseModel):
+    file: str
+    bug_type: str
+    line: int
+    commit_message: str
+    status: str  # FIXED, DELETED, FAILED
+
 class TestResult(BaseModel):
     total_failures: int
     failures: List[BugMetadata] = []
@@ -29,6 +36,7 @@ class AgentState(BaseModel):
     # State tracking
     current_test_results: Optional[TestResult] = None
     fixes_applied: List[str] = []
+    commit_log: List[CommitEntry] = []
     commit_count: int = 0
     
     # Final Result

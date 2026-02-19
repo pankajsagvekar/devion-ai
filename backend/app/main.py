@@ -97,7 +97,10 @@ async def run_agent(request: RunRequest):
     # Note: In a real prod environment, this should be async/backgrounded
     final_output = await graph.ainvoke(initial_state)
     
-    return final_output["results_json"]
+    # Build response: results_json fields + commit_log (not saved to results.json on disk)
+    response = dict(final_output["results_json"])
+    response["commit_log"] = [entry.model_dump() for entry in final_output.get("commit_log", [])]
+    return response
 
 if __name__ == "__main__":
     import uvicorn
