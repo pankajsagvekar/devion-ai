@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { GitBranch, Play, Loader2, Terminal, Github } from "lucide-react";
+import { GitBranch, Play, Loader2, Github } from "lucide-react";
 import axios from "axios";
 import { useDashboard, generateMockResults } from "@/context/DashboardContext";
 import api from "@/lib/api";
@@ -83,17 +83,18 @@ export default function InputSection() {
         efficiencyPenalty: data.score_calculation?.efficiency_penalty || 0,
         finalScore: data.score_calculation?.final_score || 0,
         totalCommits: data.commit_count,
-        fixes: (data.fixes_applied || []).map((f: string) => ({
-          file: f.split(" applied to ")[1]?.split(" for ")[0] || "unknown",
-          bugType: (f.split(" for ")[1]?.split(" at line ")[0] || "LOGIC") as any,
-          lineNumber: parseInt(f.split(" at line ")[1]) || 0,
-          commitMessage: f,
-          status: "fixed" as const
+        fixes: (data.commit_log || []).map((entry: any) => ({
+          file: entry.file || "unknown",
+          bugType: (entry.bug_type || "LOGIC") as any,
+          lineNumber: entry.line || 0,
+          commitMessage: entry.commit_message || "AI Fix",
+          status: entry.status?.toLowerCase() === "fixed" ? "fixed" : 
+                  entry.status?.toLowerCase() === "deleted" ? "deleted" : "failed"
         })),
         ciRuns: [
           {
             iteration: data.iterations_used,
-            status: data.final_status.toLowerCase() as any,
+            status: data.final_status?.toLowerCase() as any,
             timestamp: new Date().toISOString()
           }
         ],
@@ -146,13 +147,13 @@ export default function InputSection() {
       {/* Header Section */}
       <div className="text-center mb-10 relative z-10 max-w-2xl mx-auto">
         <motion.div
-          className="inline-flex p-3 rounded-2xl bg-primary/10 border border-primary/20 mb-6"
+          className="inline-flex p-1 rounded-2xl bg-primary/10 border border-primary/20 mb-6"
           whileHover={{ scale: 1.1, rotate: 5 }}
         >
-          <Terminal className="w-6 h-6 text-primary" />
+          <img src="/devion.png" alt="Devion AI" className="w-16 h-16 object-contain" />
         </motion.div>
         <h2 className="text-3xl md:text-5xl font-heading font-black tracking-tight text-white mb-4">
-          Universal <span className="text-gradient">Intelligence Portal</span>
+          AUTONOMOUS<span className="text-gradient"> CI/CD HEALING AGENT</span>
         </h2>
         <p className="text-sm md:text-base text-muted-foreground font-medium max-w-lg mx-auto opacity-70">
           Syncing with neural nodes to fix repository logic at the speed of light.
@@ -206,19 +207,7 @@ export default function InputSection() {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 px-1 ml-2">
-            <Github className="w-3 h-3" />
-            GitHub Access Token (Required if not connected)
-          </label>
-          <input
-            type="password"
-            value={state.githubToken}
-            onChange={(e) => dispatch({ type: "SET_FIELD", field: "githubToken", value: e.target.value })}
-            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-            className="w-full px-7 py-4 rounded-full bg-background/40 backdrop-blur-md border border-border/40 text-foreground text-sm focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/5 transition-all"
-          />
-        </div>
+        
 
         {state.error && (
           <motion.div

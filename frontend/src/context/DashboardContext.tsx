@@ -2,10 +2,10 @@ import React, { createContext, useContext, useReducer, ReactNode } from "react";
 
 export interface Fix {
   file: string;
-  bugType: "LINTING" | "SYNTAX" | "LOGIC" | "TYPE_ERROR" | "IMPORT" | "INDENTATION";
+  bugType: "LINTING" | "SYNTAX" | "LOGIC" | "TYPE_ERROR" | "IMPORT" | "INDENTATION" | "DEFAULT";
   lineNumber: number;
   commitMessage: string;
-  status: "fixed" | "failed";
+  status: "fixed" | "failed" | "deleted";
 }
 
 export interface CIRun {
