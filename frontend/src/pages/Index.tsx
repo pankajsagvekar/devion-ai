@@ -25,39 +25,6 @@ const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) 
         handleLogout={handleLogout}
       />
 
-      {/* Universal Controller Header */}
-      <div className="container mt-12 mb-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, filter: "blur(10px)" }}
-          animate={{ opacity: 1, filter: "blur(0px)" }}
-          transition={{ duration: 1 }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-6"
-        >
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary">
-              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              Universal System Portal V3.0
-            </div>
-            <h1 className="text-4xl md:text-5xl font-heading font-black text-white tracking-tighter">
-              Command <span className="text-gradient">Horizon</span>
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-8 text-muted-foreground">
-            <div className="text-right">
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-50">Global Status</div>
-              <div className="text-sm font-mono text-success font-bold flex items-center gap-2 justify-end">
-                <div className="w-1.5 h-1.5 rounded-full bg-success" />
-                OPERATIONAL
-              </div>
-            </div>
-            <div className="text-right border-l border-border/50 pl-8">
-              <div className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-50">Node Latency</div>
-              <div className="text-sm font-mono text-primary font-bold">12ms</div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
 
       {/* Main Content */}
       <main className="container pb-20 space-y-12 relative z-10 max-w-[1400px]">
@@ -108,9 +75,7 @@ const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) 
             transition={{ delay: 1 }}
             className="py-20 text-center border-t border-dashed border-border/30"
           >
-            <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">
-              System Idle — Standing by for Repository Directives
-            </p>
+            
           </motion.div>
         )}
       </main>

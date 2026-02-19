@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { GitBranch, Play, Loader2, Terminal, Github } from "lucide-react";
+import { GitBranch, Play, Loader2, Github } from "lucide-react";
+import axios from "axios";
 import { useDashboard, generateMockResults } from "@/context/DashboardContext";
 import api from "@/lib/api";
 import Threads from "./Threads";
@@ -11,13 +12,54 @@ export default function InputSection() {
   const handleRun = async () => {
     if (!state.repoUrl || !state.teamName || !state.teamLeader) return;
 
-    const token = localStorage.getItem("github_token");
+    const token = state.githubToken || localStorage.getItem("github_token");
     if (!token) {
-      window.location.href = "http://localhost:8000/auth/login";
+      dispatch({ type: "SET_ERROR", error: "Authentication required. Please provide a GitHub token or connect via GitHub." });
       return;
     }
 
+    const cleanTeam = state.teamName.toUpperCase().replace(/\s+/g, "_");
+    const cleanLeader = state.teamLeader.toUpperCase().replace(/\s+/g, "_");
+    const branchName = `${cleanTeam}_${cleanLeader}_AI_FIX`;
+
+    dispatch({ type: "SET_FIELD", field: "branchName", value: branchName });
     dispatch({ type: "START_RUN" });
+
+    // Proactive Branch Creation (Ensure branch exists on GitHub immediately)
+    try {
+      const repoParts = state.repoUrl.replace("https://github.com/", "").split("/");
+      const owner = repoParts[0];
+      const repo = repoParts[1].replace(".git", "");
+
+      // Get Default Branch
+      const repoRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: { Authorization: `token ${token}` }
+      });
+      const defaultBranch = repoRes.data.default_branch;
+
+      // Get SHA
+      const refRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${defaultBranch}`, {
+        headers: { Authorization: `token ${token}` }
+      });
+      const sha = refRes.data.object.sha;
+
+      // Create Ref
+      try {
+        await axios.post(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
+          ref: `refs/heads/${branchName}`,
+          sha: sha
+        }, {
+          headers: { Authorization: `token ${token}` }
+        });
+        console.log(`Created branch ${branchName} on GitHub`);
+      } catch (err: any) {
+        if (err.response?.status !== 422) { // 422 means already exists
+          console.error("Failed to create branch via API:", err);
+        }
+      }
+    } catch (err) {
+      console.warn("Could not pre-create branch, falling back to backend clone:", err);
+    }
 
     try {
       const response = await api.post("/run-agent", {
@@ -30,7 +72,6 @@ export default function InputSection() {
       const data = response.data;
 
       // Map backend results to frontend state structure
-      // Note: mapping logic based on calculate_score output in backend/app/utils/scoring.py
       const results = {
         branchName: data.branch_name,
         totalFailures: data.total_failures,
@@ -42,17 +83,18 @@ export default function InputSection() {
         efficiencyPenalty: data.score_calculation?.efficiency_penalty || 0,
         finalScore: data.score_calculation?.final_score || 0,
         totalCommits: data.commit_count,
-        fixes: (data.fixes_applied || []).map((f: string) => ({
-          file: f.split(" in ")[1] || "unknown",
-          bugType: (f.split(" for ")[1]?.split(" at ")[0] || "LOGIC") as any,
-          lineNumber: parseInt(f.split(" at line ")[1]) || 0,
-          commitMessage: f,
-          status: "fixed" as const
+        fixes: (data.commit_log || []).map((entry: any) => ({
+          file: entry.file || "unknown",
+          bugType: (entry.bug_type || "LOGIC") as any,
+          lineNumber: entry.line || 0,
+          commitMessage: entry.commit_message || "AI Fix",
+          status: entry.status?.toLowerCase() === "fixed" ? "fixed" : 
+                  entry.status?.toLowerCase() === "deleted" ? "deleted" : "failed"
         })),
         ciRuns: [
           {
             iteration: data.iterations_used,
-            status: data.final_status.toLowerCase() as any,
+            status: data.final_status?.toLowerCase() as any,
             timestamp: new Date().toISOString()
           }
         ],
@@ -60,10 +102,10 @@ export default function InputSection() {
       };
 
       dispatch({ type: "FINISH_RUN", payload: results });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to run agent:", error);
-      // Fallback to mock on error to keep UI interactive
-      dispatch({ type: "FINISH_RUN", payload: generateMockResults(state.teamName, state.teamLeader) });
+      const errorMsg = error.response?.data?.detail || "System bridge failure. Check your parameters.";
+      dispatch({ type: "SET_ERROR", error: errorMsg });
     }
   };
 
@@ -105,13 +147,13 @@ export default function InputSection() {
       {/* Header Section */}
       <div className="text-center mb-10 relative z-10 max-w-2xl mx-auto">
         <motion.div
-          className="inline-flex p-3 rounded-2xl bg-primary/10 border border-primary/20 mb-6"
+          className="inline-flex p-1 rounded-2xl bg-primary/10 border border-primary/20 mb-6"
           whileHover={{ scale: 1.1, rotate: 5 }}
         >
-          <Terminal className="w-6 h-6 text-primary" />
+          <img src="/devion.png" alt="Devion AI" className="w-16 h-16 object-contain" />
         </motion.div>
         <h2 className="text-3xl md:text-5xl font-heading font-black tracking-tight text-white mb-4">
-          Universal <span className="text-gradient">Intelligence Portal</span>
+          AUTONOMOUS<span className="text-gradient"> CI/CD HEALING AGENT</span>
         </h2>
         <p className="text-sm md:text-base text-muted-foreground font-medium max-w-lg mx-auto opacity-70">
           Syncing with neural nodes to fix repository logic at the speed of light.
@@ -165,6 +207,18 @@ export default function InputSection() {
           </div>
         </div>
 
+        
+
+        {state.error && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-bold text-center"
+          >
+            {state.error}
+          </motion.div>
+        )}
+
         <div className="flex flex-col items-center pt-4">
           <button
             onClick={handleRun}
@@ -177,21 +231,26 @@ export default function InputSection() {
                   <Loader2 className="w-5 h-5 animate-spin text-white" />
                   <span className="font-black text-xs uppercase tracking-[0.2em] text-white">Initializing Neural Link...</span>
                 </>
-              ) : !isLoggedIn ? (
-                <div className="flex items-center gap-3" onClick={(e) => { e.stopPropagation(); handleLogin(); }}>
-                  <Github className="w-5 h-5" />
-                  <span className="font-black text-xs uppercase tracking-[0.2em]">Verify Connection</span>
-                </div>
               ) : (
                 <>
-                  <Play className="w-5 h-5 text-white fill-white" />
-                  <span className="font-black text-xs uppercase tracking-[0.2em] text-white">Execute Directive</span>
+                  {isLoggedIn ? (
+                    <Play className="w-5 h-5 text-white fill-white" />
+                  ) : (
+                    <Github className="w-5 h-5 text-white" />
+                  )}
+                  <span className="font-black text-xs uppercase tracking-[0.2em] text-white">Execute AI Fix</span>
                 </>
               )}
             </div>
 
             <div className="absolute inset-0 w-full h-full bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 skew-x-[45deg]" />
           </button>
+
+          {!isLoggedIn && !state.githubToken && (
+            <p className="mt-4 text-[10px] text-muted-foreground uppercase tracking-widest opacity-50">
+              Or <button onClick={handleLogin} className="text-primary hover:underline font-bold">Connect via GitHub</button>
+            </p>
+          )}
         </div>
       </div>
 

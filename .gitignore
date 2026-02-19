@@ -11,8 +11,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -49,3 +47,5 @@ backend/app/services/__pycache__/
 backend/app/agents/__pycache__/
 backend/app/utils/__pycache__/
 backend/app/__pycache__/
+
+problem_statement.txt
