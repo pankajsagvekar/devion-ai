@@ -88,18 +88,7 @@ async def analyzer_agent(state: AgentState) -> AgentState:
             action="FIX"
         ))
 
-    # Pattern 6: AI Logic Auditor Deletion ([DELETE]: file_name: message)
-    pattern6 = r"\[DELETE\]:\s+(\S+):\s+(.*)"
-    matches6 = re.findall(pattern6, output)
-    print(f"DEBUG: Pattern 6 (AI Delete) found {len(matches6)} matches")
-    for file_path, msg in matches6:
-        failures.append(BugMetadata(
-            file_name=file_path.strip(),
-            line_number=1,
-            error_message=f"[AI-DELETE] {msg.strip()}",
-            bug_type="LOGIC",
-            action="DELETE"
-        ))
+
 
     if not failures and state.current_test_results.total_failures > 0:
         print("INFO: Regex parsing failed to find specific failures. Falling back to LLM-based analysis.")

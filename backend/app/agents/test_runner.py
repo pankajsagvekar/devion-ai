@@ -80,10 +80,10 @@ async def test_runner_agent(state: AgentState) -> AgentState:
                     
             combined_code = "\n".join(code_contexts)
             
-            audit_prompt = f"Analyze these Python files for LOGICAL BUGS or REDUNDANCY. If a logical bug is found, return EXACTLY: '[BUG]: filename:line: message'. If an entire file is redundant or harmful, return EXACTLY: '[DELETE]: filename: message'. Do not return anything else.\n\nFILES:\n{combined_code}"
+            audit_prompt = f"Analyze these Python files for LOGICAL BUGS or REDUNDANCY. If a logical bug is found, return EXACTLY: '[BUG]: filename:line: message'. Do not return anything else.\n\nFILES:\n{combined_code}"
             
             result = await call_ai(client, audit_prompt)
-            if result and ("[BUG]:" in result or "[DELETE]:" in result):
+            if result and "[BUG]:" in result:
                 return f"\n--- AI LOGIC AUDIT ---\n{result}\n"
             return ""
         except Exception as e:

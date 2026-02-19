@@ -38,20 +38,7 @@ async def fix_generator_agent(state: AgentState) -> AgentState:
     async def process_file(file_name, file_failures):
         file_path = os.path.join(state.repo_path, file_name)
 
-        if all(f.action == "DELETE" for f in file_failures):
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                    return {
-                        "type": "delete",
-                        "file_name": file_name,
-                        "desc": f"LOGIC error in {file_name} line 1 → Fix: remove the redundant or harmful file",
-                        "failures": file_failures,
-                        "action_desc": "remove the redundant or harmful file"
-                    }
-                except Exception as e:
-                    print(f"ERROR deleting {file_path}: {e}")
-            return None
+
 
         if not os.path.exists(file_path):
             print(f"ERROR: File not found at {file_path} — skipping.")
@@ -135,18 +122,17 @@ INSTRUCTIONS:
             state.final_status = "FAILED"
             continue
             
-        if result["type"] in ["delete", "fix"]:
-            if result["type"] == "fix":
-                with open(result["file_path"], 'w') as f:
-                    f.write(result["fixed_code"])
+        if result["type"] == "fix":
+            with open(result["file_path"], 'w') as f:
+                f.write(result["fixed_code"])
                     
             state.fixes_applied.append(result["desc"])
             print(f"SUCCESS: {result['desc']}")
             any_fix_applied = True
             
-            status_text = "FAILED" if result["type"] == "fail" else "FIXED"
+            status_text = "FIXED"
             # We append the exact string match format to fixes_applied directly
-            state.fixes_applied.append(result["desc"])
+            # state.fixes_applied.append(result["desc"])  <- Removed duplicate
             
             for fb in result["failures"]:
                 strict_commit_msg = f"{fb.bug_type} error in {result['file_name']} line {fb.line_number} → Fix: {result.get('action_desc', 'apply code changes')}"
