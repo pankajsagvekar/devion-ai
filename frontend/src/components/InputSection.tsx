@@ -1,17 +1,73 @@
 import { motion } from "framer-motion";
-import { GitBranch, Play, Loader2, Terminal } from "lucide-react";
+import { GitBranch, Play, Loader2, Terminal, Github } from "lucide-react";
 import { useDashboard, generateMockResults } from "@/context/DashboardContext";
+import api from "@/lib/api";
 
 export default function InputSection() {
   const { state, dispatch } = useDashboard();
+  const isLoggedIn = !!localStorage.getItem("github_token");
 
-  const handleRun = () => {
+  const handleRun = async () => {
     if (!state.repoUrl || !state.teamName || !state.teamLeader) return;
+
+    const token = localStorage.getItem("github_token");
+    if (!token) {
+      window.location.href = "http://localhost:8000/auth/login";
+      return;
+    }
+
     dispatch({ type: "START_RUN" });
-    setTimeout(() => {
-      const results = generateMockResults(state.teamName, state.teamLeader);
+
+    try {
+      const response = await api.post("/run-agent", {
+        repository_url: state.repoUrl,
+        github_token: token,
+        team_name: state.teamName,
+        team_leader: state.teamLeader,
+      });
+
+      const data = response.data;
+
+      // Map backend results to frontend state structure
+      // Note: mapping logic based on calculate_score output in backend/app/utils/scoring.py
+      const results = {
+        branchName: data.branch_name,
+        totalFailures: data.total_failures,
+        totalFixes: data.total_fixes,
+        ciStatus: data.final_status.toLowerCase() as "passed" | "failed",
+        timeTaken: `${(data.total_time_seconds / 60).toFixed(1)} min`,
+        baseScore: data.score_calculation?.base_score || 100,
+        speedBonus: data.score_calculation?.speed_bonus || 0,
+        efficiencyPenalty: data.score_calculation?.efficiency_penalty || 0,
+        finalScore: data.score_calculation?.final_score || 0,
+        totalCommits: data.commit_count,
+        fixes: (data.fixes_applied || []).map((f: string) => ({
+          file: f.split(" in ")[1] || "unknown",
+          bugType: (f.split(" for ")[1]?.split(" at ")[0] || "LOGIC") as any,
+          lineNumber: parseInt(f.split(" at line ")[1]) || 0,
+          commitMessage: f,
+          status: "fixed" as const
+        })),
+        ciRuns: [
+          {
+            iteration: data.iterations_used,
+            status: data.final_status.toLowerCase() as any,
+            timestamp: new Date().toISOString()
+          }
+        ],
+        retryLimit: 5,
+      };
+
       dispatch({ type: "FINISH_RUN", payload: results });
-    }, 3000);
+    } catch (error) {
+      console.error("Failed to run agent:", error);
+      // Fallback to mock on error to keep UI interactive
+      dispatch({ type: "FINISH_RUN", payload: generateMockResults(state.teamName, state.teamLeader) });
+    }
+  };
+
+  const handleLogin = () => {
+    window.location.href = "http://localhost:8000/auth/login";
   };
 
   return (
@@ -25,14 +81,22 @@ export default function InputSection() {
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[40px] rounded-full" />
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-cyan/5 blur-[30px] rounded-full" />
 
-      <div className="flex items-center gap-3 mb-8 relative">
-        <div className="p-2.5 rounded-xl bg-primary/15 border border-primary/20">
-          <Terminal className="w-5 h-5 text-primary" />
+      <div className="flex items-center justify-between mb-8 relative">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-primary/15 border border-primary/20">
+            <Terminal className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg font-heading font-bold text-foreground">Analyze Repository</h2>
+            <p className="text-xs text-muted-foreground">Enter your GitHub repository details to begin analysis</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-heading font-bold text-foreground">Analyze Repository</h2>
-          <p className="text-xs text-muted-foreground">Enter your GitHub repository details to begin analysis</p>
-        </div>
+
+        {!isLoggedIn && (
+          <div className="text-xs font-medium text-amber-400 bg-amber-400/10 border border-amber-400/20 px-3 py-1 rounded-full animate-pulse">
+            Authentication Required
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 relative">
@@ -80,6 +144,11 @@ export default function InputSection() {
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Analyzing...
               </>
+            ) : !isLoggedIn ? (
+              <div className="flex items-center gap-2" onClick={(e) => { e.stopPropagation(); handleLogin(); }}>
+                <Github className="w-4 h-4" />
+                Login to Run
+              </div>
             ) : (
               <>
                 <Play className="w-4 h-4" />

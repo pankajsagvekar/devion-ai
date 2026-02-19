@@ -1,12 +1,38 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DashboardProvider } from "@/context/DashboardContext";
 import InputSection from "@/components/InputSection";
 import RunSummary from "@/components/RunSummary";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import FixesTable from "@/components/FixesTable";
 import CITimeline from "@/components/CITimeline";
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, Sparkles, LogOut, Github } from "lucide-react";
 
 const Index = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const token = searchParams.get("token");
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("github_token", token);
+      // Remove token from URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("token");
+      setSearchParams(newParams);
+    }
+  }, [token, searchParams, setSearchParams]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("github_token");
+    window.location.reload();
+  };
+
+  const handleLogin = () => {
+    window.location.href = "http://localhost:8000/auth/login";
+  };
+
+  const isLoggedIn = !!localStorage.getItem("github_token");
+
   return (
     <DashboardProvider>
       <div className="min-h-screen bg-background bg-mesh bg-grid relative overflow-hidden">
@@ -30,9 +56,29 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground tracking-wide">Automated Repository Analysis & Bug Fixing</p>
               </div>
             </div>
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-medium text-primary">AI-Powered</span>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-medium text-primary">AI-Powered</span>
+              </div>
+
+              {isLoggedIn ? (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/20 border border-border/50 text-sm font-medium hover:bg-secondary/30 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={handleLogin}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity"
+                >
+                  <Github className="w-4 h-4" />
+                  Connect GitHub
+                </button>
+              )}
             </div>
           </div>
         </header>
