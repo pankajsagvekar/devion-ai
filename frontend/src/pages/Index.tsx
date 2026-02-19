@@ -50,9 +50,9 @@ const Index = () => {
     <DashboardProvider>
       <div className="min-h-screen bg-background bg-mesh bg-grid relative overflow-hidden">
         {/* Floating orbs */}
-        <div className="fixed top-20 left-10 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] animate-orb-1 pointer-events-none" />
-        <div className="fixed bottom-20 right-10 w-[400px] h-[400px] rounded-full bg-cyan/5 blur-[100px] animate-orb-2 pointer-events-none" />
-        <div className="fixed top-1/2 left-1/2 w-[300px] h-[300px] rounded-full bg-pink/3 blur-[80px] pointer-events-none" />
+        <div className="fixed top-20 right-0 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[130px] animate-orb-1 pointer-events-none" />
+        <div className="fixed bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px] animate-orb-2 pointer-events-none" />
+        <div className="fixed top-1/2 left-1/2 w-[300px] h-[300px] rounded-full bg-primary/3 blur-[120px] pointer-events-none" />
 
         {/* Header */}
         <header className="glass-strong sticky top-0 z-50 border-b border-border/30">
@@ -64,7 +64,7 @@ const Index = () => {
                   <span className="text-white/90">
                     Devion-
                   </span>
-                  <span className="text-cyan-400 text-blue-400">
+                  <span className="text-primary">
                     AI
                   </span>
                 </h1>
