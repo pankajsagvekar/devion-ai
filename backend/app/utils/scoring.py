@@ -10,7 +10,7 @@ def calculate_score(state: AgentState) -> Dict[str, Any]:
     speed_bonus = 10 if total_time < 300 else 0
     
     # efficiency_penalty = -2 per commit over 20
-    efficiency_penalty = max(0, (state.commit_count - 20) * 2)
+    efficiency_penalty = max(0, (state.commit_count - 20) * 2) 
     
     final_score = base_score + speed_bonus - efficiency_penalty
     

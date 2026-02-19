@@ -78,8 +78,8 @@ class GitService:
         repo = git.Repo(repo_path)
         repo.git.add(A=True)
         if repo.is_dirty():
-            repo.index.commit(f"[AI-AGENT] {message}")
-            print(f"DEBUG: Commit successful: [AI-AGENT] {message}")
+            repo.index.commit(message)
+            print(f"DEBUG: Commit successful: {message}")
             
             # Update remote URL with token if provided for the push
             origin = repo.remote(name='origin')

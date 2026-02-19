@@ -48,13 +48,13 @@ def create_graph():
         after_test_route,
         {
             "analyze": "analyzer",
-            "end": "finalize"
+            "end": "git"  # Move to Git commit at the end
         }
     )
 
     workflow.add_edge("analyzer", "fixer")
-    workflow.add_edge("fixer", "git")
-    workflow.add_edge("git", "orchestrator")
+    workflow.add_edge("fixer", "orchestrator") # Loop back without committing
+    workflow.add_edge("git", "finalize")
 
     # Finalization node to generate results.json
     async def finalize_results(state: AgentState):
