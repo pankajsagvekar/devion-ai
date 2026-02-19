@@ -1,0 +1,56 @@
+import time
+from langgraph.graph import StateGraph, END
+from app.state import AgentState
+from app.agents.orchestrator import orchestrator_agent
+from app.agents.test_runner import test_runner_agent
+from app.agents.analyzer import analyzer_agent
+from app.agents.fix_generator import fix_generator_agent
+from app.agents.git_agent import git_agent
+from app.utils.scoring import calculate_score
+
+def create_graph():
+    workflow = StateGraph(AgentState)
+
+    # Add Nodes
+    workflow.add_node("orchestrator", orchestrator_agent)
+    workflow.add_node("tester", test_runner_agent)
+    workflow.add_node("analyzer", analyzer_agent)
+    workflow.add_node("fixer", fix_generator_agent)
+    workflow.add_node("git", git_agent)
+
+    # Define Edges & Conditional Logic
+    workflow.set_entry_point("orchestrator")
+    workflow.add_edge("orchestrator", "tester")
+
+    def after_test_route(state: AgentState):
+        if state.current_test_results and state.current_test_results.total_failures == 0:
+            state.final_status = "PASSED"
+            return "end"
+        if state.iteration >= state.max_retries:
+            state.final_status = "FAILED"
+            return "end"
+        return "analyze"
+
+    workflow.add_conditional_edges(
+        "tester",
+        after_test_route,
+        {
+            "analyze": "analyzer",
+            "end": "finalize"
+        }
+    )
+
+    workflow.add_edge("analyzer", "fixer")
+    workflow.add_edge("fixer", "git")
+    workflow.add_edge("git", "orchestrator")
+
+    # Finalization node to generate results.json
+    async def finalize_results(state: AgentState):
+        state.end_time = time.time()
+        state.results_json = calculate_score(state)
+        return state
+
+    workflow.add_node("finalize", finalize_results)
+    workflow.add_edge("finalize", END)
+
+    return workflow.compile()
