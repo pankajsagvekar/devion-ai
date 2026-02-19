@@ -59,8 +59,7 @@ curl -X POST http://localhost:8000/run-agent \
      -H "Content-Type: application/json" \
      -d '{
            "repository_url": "https://github.com/your-repo/demo",
-           "team_name": "Antigravity",
-           "leader_name": "Pankaj"
+           "github_token": "your_github_pat_here"
          }'
 ```
 

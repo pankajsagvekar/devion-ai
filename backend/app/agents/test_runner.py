@@ -10,7 +10,7 @@ async def test_runner_agent(state: AgentState) -> AgentState:
     if not state.repo_path:
         from app.services.git_service import GitService
         git_svc = GitService()
-        state.repo_path = git_svc.clone_repo(state.repository_url, state.team_name)
+        state.repo_path = git_svc.clone_repo(state.repository_url, state.team_name, state.github_token)
         git_svc.create_branch(state.repo_path, state.branch_name)
 
     # Run tests

@@ -6,3 +6,5 @@ gitpython
 pytest
 pytest-json-report
 httpx
+google-generativeai
+python-dotenv

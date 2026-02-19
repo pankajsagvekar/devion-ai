@@ -17,6 +17,7 @@ class AgentState(BaseModel):
     repository_url: str
     team_name: str
     leader_name: str
+    github_token: str = ""
     
     # Workflow data
     branch_name: str = ""
