@@ -59,18 +59,20 @@ async def auth_callback(code: str = Query(None)):
 class RunRequest(BaseModel):
     repository_url: str
     github_token: str
+    team_name: str
+    team_leader: str
 
 @app.post("/run-agent")
 async def run_agent(request: RunRequest):
     # Sanitize team/leader names for branch creation
-    clean_team = TEAM_NAME.upper().replace(" ", "_")
-    clean_leader = LEADER_NAME.upper().replace(" ", "_")
+    clean_team = request.team_name.upper().replace(" ", "_")
+    clean_leader = request.team_leader.upper().replace(" ", "_")
     branch_name = f"{clean_team}_{clean_leader}_AI_FIX"
 
     initial_state = AgentState(
         repository_url=request.repository_url,
-        team_name=TEAM_NAME,
-        leader_name=LEADER_NAME,
+        team_name=request.team_name,
+        leader_name=request.team_leader,
         github_token=request.github_token,
         branch_name=branch_name,
         start_time=time.time()
