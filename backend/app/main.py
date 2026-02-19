@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from app.state import AgentState, TestResult
 from app.graph import create_graph
-from app.config import TEAM_NAME, LEADER_NAME, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_REDIRECT_URI
+from app.config import GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_REDIRECT_URI
 
 app = FastAPI(title="Autonomous CI/CD Healing Agent")
 
