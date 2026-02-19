@@ -20,14 +20,29 @@ def create_graph():
 
     # Define Edges & Conditional Logic
     workflow.set_entry_point("orchestrator")
-    workflow.add_edge("orchestrator", "tester")
+    
+    def orchestrator_route(state: AgentState):
+        if state.final_status in ["PASSED", "FAILED"]:
+            return "end"
+        return "test"
+
+    workflow.add_conditional_edges(
+        "orchestrator",
+        orchestrator_route,
+        {
+            "test": "tester",
+            "end": "finalize"
+        }
+    )
 
     def after_test_route(state: AgentState):
         if state.current_test_results and state.current_test_results.total_failures == 0:
             state.final_status = "PASSED"
             return "end"
-        if state.iteration >= state.max_retries:
-            state.final_status = "FAILED"
+        if state.iteration >= state.max_retries or state.final_status == "FAILED":
+            # Ensure final_status is set if we timed out
+            if state.iteration >= state.max_retries and state.final_status == "PENDING":
+                state.final_status = "FAILED"
             return "end"
         return "analyze"
 

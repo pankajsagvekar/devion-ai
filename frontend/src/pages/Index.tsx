@@ -1,26 +1,146 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { DashboardProvider } from "@/context/DashboardContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { DashboardProvider, useDashboard } from "@/context/DashboardContext";
 import InputSection from "@/components/InputSection";
 import RunSummary from "@/components/RunSummary";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import FixesTable from "@/components/FixesTable";
 import CITimeline from "@/components/CITimeline";
-import { Bot, Sparkles, LogOut, Github } from "lucide-react";
+import Header from "@/components/Header";
+import BackgroundEffects from "@/components/BackgroundEffects";
+import { fetchGithubUser } from "@/lib/api";
+
+const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) => {
+  const { state } = useDashboard();
+
+  return (
+    <div className="min-h-screen bg-background bg-mesh bg-grid relative overflow-hidden selection:bg-primary/30">
+      <BackgroundEffects lowPower={state.isRunning} />
+
+      <Header
+        isLoggedIn={isLoggedIn}
+        userData={userData}
+        handleLogin={handleLogin}
+        handleLogout={handleLogout}
+      />
+
+      {/* Universal Controller Header */}
+      <div className="container mt-12 mb-8 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, filter: "blur(10px)" }}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          transition={{ duration: 1 }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6"
+        >
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              Universal System Portal V3.0
+            </div>
+            <h1 className="text-4xl md:text-5xl font-heading font-black text-white tracking-tighter">
+              Command <span className="text-gradient">Horizon</span>
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-8 text-muted-foreground">
+            <div className="text-right">
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-50">Global Status</div>
+              <div className="text-sm font-mono text-success font-bold flex items-center gap-2 justify-end">
+                <div className="w-1.5 h-1.5 rounded-full bg-success" />
+                OPERATIONAL
+              </div>
+            </div>
+            <div className="text-right border-l border-border/50 pl-8">
+              <div className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-50">Node Latency</div>
+              <div className="text-sm font-mono text-primary font-bold">12ms</div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Main Content */}
+      <main className="container pb-20 space-y-12 relative z-10 max-w-[1400px]">
+        <section className="relative">
+          <InputSection />
+        </section>
+
+        <AnimatePresence>
+          {state.hasResults && (
+            <motion.section
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-8"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground whitespace-nowrap">Intelligence Report</h3>
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="lg:col-span-3">
+                  <RunSummary />
+                </div>
+                <div>
+                  <ScoreBreakdown />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2">
+                  <FixesTable />
+                </div>
+                <div className="h-full">
+                  <CITimeline />
+                </div>
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+
+        {!state.hasResults && !state.isRunning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            transition={{ delay: 1 }}
+            className="py-20 text-center border-t border-dashed border-border/30"
+          >
+            <p className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground">
+              System Idle — Standing by for Repository Directives
+            </p>
+          </motion.div>
+        )}
+      </main>
+    </div>
+  );
+};
 
 const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [userData, setUserData] = useState<any>(null);
   const token = searchParams.get("token");
 
   useEffect(() => {
     if (token) {
       localStorage.setItem("github_token", token);
-      // Remove token from URL
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("token");
       setSearchParams(newParams);
     }
   }, [token, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const data = await fetchGithubUser();
+      if (data) setUserData(data);
+    };
+    if (localStorage.getItem("github_token")) {
+      loadUser();
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("github_token");
@@ -35,79 +155,12 @@ const Index = () => {
 
   return (
     <DashboardProvider>
-      <div className="min-h-screen bg-background bg-mesh bg-grid relative overflow-hidden">
-        {/* Floating orbs */}
-        <div className="fixed top-20 left-10 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] animate-orb-1 pointer-events-none" />
-        <div className="fixed bottom-20 right-10 w-[400px] h-[400px] rounded-full bg-cyan/5 blur-[100px] animate-orb-2 pointer-events-none" />
-        <div className="fixed top-1/2 left-1/2 w-[300px] h-[300px] rounded-full bg-pink/3 blur-[80px] pointer-events-none" />
-
-        {/* Header */}
-        <header className="glass-strong sticky top-0 z-50 border-b border-border/30">
-          <div className="container flex items-center justify-between py-4">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/30 blur-lg rounded-xl" />
-                <div className="relative p-2.5 rounded-xl bg-primary/20 border border-primary/30">
-                  <Bot className="w-6 h-6 text-primary" />
-                </div>
-              </div>
-              <div>
-                <h1 className="text-xl font-heading font-bold text-gradient tracking-tight">CI/CD Agent Dashboard</h1>
-                <p className="text-xs text-muted-foreground tracking-wide">Automated Repository Analysis & Bug Fixing</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-medium text-primary">AI-Powered</span>
-              </div>
-
-              {isLoggedIn ? (
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/20 border border-border/50 text-sm font-medium hover:bg-secondary/30 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              ) : (
-                <button
-                  onClick={handleLogin}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity"
-                >
-                  <Github className="w-4 h-4" />
-                  Connect GitHub
-                </button>
-              )}
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="container py-8 space-y-6 relative z-10">
-          <InputSection />
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <RunSummary />
-            </div>
-            <div>
-              <ScoreBreakdown />
-            </div>
-          </div>
-
-          <FixesTable />
-
-          <CITimeline />
-        </main>
-
-        {/* Footer */}
-        <footer className="border-t border-border/20 py-6 mt-12 relative z-10">
-          <div className="container text-center text-xs text-muted-foreground">
-            Built for <span className="text-gradient font-semibold">RIFT Hackathon</span> — Powered by AI Agent Technology
-          </div>
-        </footer>
-      </div>
+      <IndexContent
+        isLoggedIn={isLoggedIn}
+        userData={userData}
+        handleLogin={handleLogin}
+        handleLogout={handleLogout}
+      />
     </DashboardProvider>
   );
 };
