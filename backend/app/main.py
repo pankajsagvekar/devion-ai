@@ -19,6 +19,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health():
+    return {"status": "ok", "mode": "debug", "time": time.time()}
+
 # OAuth Endpoints
 @app.get("/auth/login")
 async def login_github():
@@ -88,4 +92,5 @@ async def run_agent(request: RunRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Enable reload=True for development to pick up changes automatically
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
