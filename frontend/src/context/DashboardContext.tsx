@@ -35,6 +35,8 @@ export interface DashboardState {
   fixesApplied: string[];
   ciRuns: CIRun[];
   retryLimit: number;
+  iterationsUsed: number;
+  rawResponse?: any;
   error?: string;
 }
 
@@ -65,6 +67,7 @@ const initialState: DashboardState = {
   fixesApplied: [],
   ciRuns: [],
   retryLimit: 5,
+  iterationsUsed: 0,
 };
 
 function reducer(state: DashboardState, action: Action): DashboardState {
@@ -143,8 +146,9 @@ export function generateMockResults(teamName: string, teamLeader: string): Omit<
     finalScore: 100 + speedBonus - efficiencyPenalty,
     totalCommits,
     fixes,
-    fixesApplied: fixes.map(f => `[AI-AGENT] Fixed ${f.bugType} in ${f.file} at line ${f.lineNumber}`),
+    fixesApplied: fixes.map(f => f.commitMessage),
     ciRuns,
     retryLimit: 5,
+    iterationsUsed: ciRuns.length,
   };
 }
