@@ -4,10 +4,13 @@ from app.state import AgentState
 
 def calculate_score(state: AgentState) -> Dict[str, Any]:
     total_time = state.end_time - state.start_time
-    base_score = 100
-    
-    # speed_bonus = +10 if <5 min
-    speed_bonus = 10 if total_time < 300 else 0
+    if state.final_status == "PASSED":
+        base_score = 100
+        # speed_bonus = +10 if <5 min
+        speed_bonus = 10 if total_time < 300 else 0
+    else:
+        base_score = 0
+        speed_bonus = 0
     
     # efficiency_penalty = -2 per commit over 20
     efficiency_penalty = max(0, (state.commit_count - 20) * 2) 
