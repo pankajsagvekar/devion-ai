@@ -54,6 +54,14 @@ class GitService:
         # Ensure we are on a clean state (handle main or master)
         default_branch = 'main' if 'main' in [head.name for head in repo.heads] else 'master'
         print(f"DEBUG: Checking out default branch: {default_branch}")
+        
+        # Robust cleaning to prevent checkout conflicts (e.g. __pycache__)
+        try:
+            repo.git.checkout("--", ".")
+            repo.git.clean("-fdx")
+        except Exception as e:
+            print(f"DEBUG: Pre-checkout clean failed (non-critical): {e}")
+
         repo.git.checkout(default_branch)
         repo.git.pull()
 

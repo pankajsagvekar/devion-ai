@@ -1,9 +1,18 @@
+import sys
+import os
 import httpx
 import time
 from fastapi import FastAPI, BackgroundTasks, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
+
+# Auto-inject venv bin into PATH for local execution stability
+venv_bin = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "venv", "bin")
+if os.path.exists(venv_bin) and venv_bin not in os.environ["PATH"]:
+    os.environ["PATH"] = venv_bin + os.pathsep + os.environ["PATH"]
+    print(f"DEBUG: Injected venv bin into PATH: {venv_bin}")
+
 from app.state import AgentState, TestResult
 from app.graph import create_graph
 from app.config import GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_REDIRECT_URI
@@ -71,7 +80,7 @@ async def run_agent(request: RunRequest):
     # Sanitize team/leader names for branch creation
     clean_team = request.team_name.upper().replace(" ", "_")
     clean_leader = request.team_leader.upper().replace(" ", "_")
-    branch_name = f"{clean_team}_{clean_leader}_AI_FIX"
+    branch_name = f"{clean_team}_{clean_leader}_AI_Fix"
 
     initial_state = AgentState(
         repository_url=request.repository_url,

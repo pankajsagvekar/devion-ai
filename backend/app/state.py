@@ -6,6 +6,7 @@ class BugMetadata(BaseModel):
     line_number: int
     error_message: str
     bug_type: str  # LINTING, SYNTAX, LOGIC, TYPE_ERROR, IMPORT, INDENTATION
+    action: str = "FIX"  # FIX or DELETE
 
 class TestResult(BaseModel):
     total_failures: int

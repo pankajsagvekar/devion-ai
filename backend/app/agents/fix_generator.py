@@ -29,6 +29,20 @@ async def fix_generator_agent(state: AgentState) -> AgentState:
     failure = state.current_test_results.failures[0]
     file_path = os.path.join(state.repo_path, failure.file_name)
 
+    # NEW: Handle Deletion Action
+    if hasattr(failure, "action") and failure.action == "DELETE":
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+                fix_description = f"AI Action: DELETED redundant/harmful file {failure.file_name}"
+                state.fixes_applied.append(fix_description)
+                print(f"SUCCESS: {fix_description}")
+            except Exception as e:
+                print(f"ERROR deleting file {file_path}: {e}")
+        else:
+            print(f"WARNING: Deletion requested but file not found: {file_path}")
+        return state
+
     if not os.path.exists(file_path):
         print(f"ERROR: File not found at {file_path}")
         return state
@@ -50,13 +64,18 @@ CONTENT:
 {file_content}
 ```
 
-Return ONLY the completely fixed code in a single python block.
+INSTRUCTIONS:
+1. Fix the reported error at line {failure.line_number}.
+2. REMOVE any redundant, dead, or harmful code that might be causing the failure or instability.
+3. Keep the logic clean and professional.
+4. Return ONLY the completely fixed code in a single python block.
 """
 
     # Multi-model fallback strategy
     models_to_try = [
-        "gemini-2.0-flash-lite", 
         "gemini-flash-latest",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash",
         "gemini-exp-1206"
     ]
     
