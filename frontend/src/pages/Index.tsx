@@ -1,15 +1,18 @@
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { DashboardProvider } from "@/context/DashboardContext";
 import InputSection from "@/components/InputSection";
 import RunSummary from "@/components/RunSummary";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import FixesTable from "@/components/FixesTable";
 import CITimeline from "@/components/CITimeline";
-import { Bot, Sparkles, LogOut, Github } from "lucide-react";
+import { User, Sparkles, LogOut, Github } from "lucide-react";
+import { fetchGithubUser } from "@/lib/api";
 
 const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [userData, setUserData] = useState<any>(null);
+  const navigate = useNavigate();
   const token = searchParams.get("token");
 
   useEffect(() => {
@@ -21,6 +24,16 @@ const Index = () => {
       setSearchParams(newParams);
     }
   }, [token, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const data = await fetchGithubUser();
+      if (data) setUserData(data);
+    };
+    if (localStorage.getItem("github_token")) {
+      loadUser();
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("github_token");
@@ -45,14 +58,16 @@ const Index = () => {
         <header className="glass-strong sticky top-0 z-50 border-b border-border/30">
           <div className="container flex items-center justify-between py-4">
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/30 blur-lg rounded-xl" />
-                <div className="relative p-2.5 rounded-xl bg-primary/20 border border-primary/30">
-                  <Bot className="w-6 h-6 text-primary" />
-                </div>
-              </div>
+              <img src="/devion.png" alt="Devion-AI Logo" className="w-20 h-20 object-contain rounded-xl " />
               <div>
-                <h1 className="text-xl font-heading font-bold text-gradient tracking-tight">CI/CD Agent Dashboard</h1>
+                <h1 className="text-2xl font-bold tracking-tight">
+                  <span className="text-white/90">
+                    Devion-
+                  </span>
+                  <span className="text-cyan-400 text-blue-400">
+                    AI
+                  </span>
+                </h1>
                 <p className="text-xs text-muted-foreground tracking-wide">Automated Repository Analysis & Bug Fixing</p>
               </div>
             </div>
@@ -63,13 +78,28 @@ const Index = () => {
               </div>
 
               {isLoggedIn ? (
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/20 border border-border/50 text-sm font-medium hover:bg-secondary/30 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate("/profile")}
+                    className="flex items-center gap-2 p-1.5 pr-4 rounded-xl bg-secondary/20 border border-border/50 text-sm font-medium hover:bg-secondary/30 transition-colors"
+                  >
+                    {userData?.avatar_url ? (
+                      <img src={userData.avatar_url} alt="Profile" className="w-7 h-7 rounded-lg border border-primary/30" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <User className="w-4 h-4 text-primary" />
+                      </div>
+                    )}
+                    <span className="hidden sm:inline">{userData?.name || userData?.login || "Profile"}</span>
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-destructive/10 border border-destructive/20 text-sm font-medium hover:bg-destructive/20 text-destructive transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden lg:inline">Logout</span>
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={handleLogin}
@@ -101,12 +131,7 @@ const Index = () => {
           <CITimeline />
         </main>
 
-        {/* Footer */}
-        <footer className="border-t border-border/20 py-6 mt-12 relative z-10">
-          <div className="container text-center text-xs text-muted-foreground">
-            Built for <span className="text-gradient font-semibold">RIFT Hackathon</span> — Powered by AI Agent Technology
-          </div>
-        </footer>
+
       </div>
     </DashboardProvider>
   );
