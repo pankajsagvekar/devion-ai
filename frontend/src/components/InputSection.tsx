@@ -75,7 +75,7 @@ export default function InputSection() {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className={`glass-card p-8 relative overflow-hidden transition-all duration-700 ${state.isRunning ? 'border-primary/50 shadow-[0_0_50px_-12px_rgba(234,179,8,0.3)]' : 'glow-primary'}`}
+      className={`glass-card p-8 relative overflow-hidden transition-all duration-700 edge-light ${state.isRunning ? 'border-primary/50 shadow-[0_0_60px_-12px_rgba(234,179,8,0.4)]' : 'glow-intense shadow-[0_0_30px_-10px_rgba(234,179,8,0.2)]'}`}
     >
       {/* Ambient Loading Light (only visible when running) */}
       {state.isRunning && (
