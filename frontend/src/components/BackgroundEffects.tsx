@@ -5,7 +5,7 @@ const BackgroundEffects = () => {
     return (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
             {/* Cinematic Threads Animation */}
-            <div className="absolute inset-0 opacity-40">
+            <div className="absolute inset-0 opacity-70">
                 <Threads
                     color={[0.6, 0.4, 1]}
                     amplitude={1.2}
