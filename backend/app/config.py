@@ -4,10 +4,6 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Hardcoded Team Credentials
-TEAM_NAME = "DEVIONCREW"
-LEADER_NAME = "PANKAJ_SAGVEKAR"
-
 # AI Configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
