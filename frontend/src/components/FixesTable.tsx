@@ -1,6 +1,6 @@
+import { Fix, useDashboard } from "@/context/DashboardContext";
 import { motion } from "framer-motion";
-import { FileCode, CheckCircle2, XCircle, TableProperties } from "lucide-react";
-import { useDashboard, Fix } from "@/context/DashboardContext";
+import { CheckCircle2, FileCode, TableProperties, XCircle } from "lucide-react";
 
 const bugTypeStyles: Record<Fix["bugType"], { bg: string; text: string }> = {
   LINTING: { bg: "bg-primary/15 border-primary/25", text: "text-primary" },
@@ -9,6 +9,7 @@ const bugTypeStyles: Record<Fix["bugType"], { bg: string; text: string }> = {
   TYPE_ERROR: { bg: "bg-cyan/15 border-cyan/25", text: "text-cyan" },
   IMPORT: { bg: "bg-pink/15 border-pink/25", text: "text-pink" },
   INDENTATION: { bg: "bg-muted border-border", text: "text-muted-foreground" },
+  DEFAULT: { bg: "bg-secondary border-border/50", text: "text-white" },
 };
 
 export default function FixesTable() {
@@ -82,6 +83,11 @@ export default function FixesTable() {
                       <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-success/10 border border-success/20">
                         <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                         <span className="text-[10px] font-bold text-success uppercase">Fixed</span>
+                      </div>
+                    ) : fix.status === "deleted" ? (
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                        <XCircle className="w-3.5 h-3.5 text-amber-500" />
+                        <span className="text-[10px] font-bold text-amber-500 uppercase">Deleted</span>
                       </div>
                     ) : (
                       <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-destructive/10 border border-destructive/20">

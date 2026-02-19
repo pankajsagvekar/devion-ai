@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useReducer, ReactNode } from "react";
+import React, { createContext, ReactNode, useContext, useReducer } from "react";
 
 export interface Fix {
   file: string;
-  bugType: "LINTING" | "SYNTAX" | "LOGIC" | "TYPE_ERROR" | "IMPORT" | "INDENTATION";
+  bugType: "LINTING" | "SYNTAX" | "LOGIC" | "TYPE_ERROR" | "IMPORT" | "INDENTATION" | "DEFAULT";
   lineNumber: number;
   commitMessage: string;
-  status: "fixed" | "failed";
+  status: "fixed" | "failed" | "deleted";
 }
 
 export interface CIRun {
@@ -32,6 +32,7 @@ export interface DashboardState {
   finalScore: number;
   totalCommits: number;
   fixes: Fix[];
+  fixesApplied: string[];
   ciRuns: CIRun[];
   retryLimit: number;
   error?: string;
@@ -61,6 +62,7 @@ const initialState: DashboardState = {
   finalScore: 0,
   totalCommits: 0,
   fixes: [],
+  fixesApplied: [],
   ciRuns: [],
   retryLimit: 5,
 };
@@ -141,6 +143,7 @@ export function generateMockResults(teamName: string, teamLeader: string): Omit<
     finalScore: 100 + speedBonus - efficiencyPenalty,
     totalCommits,
     fixes,
+    fixesApplied: fixes.map(f => `[AI-AGENT] Fixed ${f.bugType} in ${f.file} at line ${f.lineNumber}`),
     ciRuns,
     retryLimit: 5,
   };

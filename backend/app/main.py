@@ -7,11 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
-# Auto-inject venv bin into PATH for local execution stability
-venv_bin = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "venv", "bin")
-if os.path.exists(venv_bin) and venv_bin not in os.environ["PATH"]:
-    os.environ["PATH"] = venv_bin + os.pathsep + os.environ["PATH"]
-    print(f"DEBUG: Injected venv bin into PATH: {venv_bin}")
+# Auto-inject venv bin/Scripts into PATH for local execution stability
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+venv_dirs = [os.path.join(root_dir, "venv", "Scripts"), os.path.join(root_dir, "venv", "bin")]
+for venv_bin in venv_dirs:
+    if os.path.exists(venv_bin) and venv_bin not in os.environ["PATH"]:
+        os.environ["PATH"] = venv_bin + os.pathsep + os.environ["PATH"]
+        print(f"DEBUG: Injected venv path: {venv_bin}")
 
 from app.state import AgentState, TestResult
 from app.graph import create_graph
