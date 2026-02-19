@@ -19,86 +19,81 @@ async def test_runner_agent(state: AgentState) -> AgentState:
         state.repo_path = git_svc.clone_repo(state.repository_url, state.team_name, state.github_token)
         git_svc.create_branch(state.repo_path, state.branch_name, state.github_token)
 
-    # Run tests
+    # 1. Run Pytest
     cmd = "pytest --maxfail=5"
     if USE_DOCKER:
         test_output = tester.run_in_sandbox(state.repo_path, cmd)
     else:
         test_output = tester.run_local(state.repo_path, cmd)
     
-    # Calculate preliminary failures from pytest
-    is_system_error = any(msg in test_output.lower() for msg in ["cannot connect to the docker daemon", "docker: command not found", "permission denied"])
-    pytest_failures = 1 if "failed" in test_output.lower() or "error" in test_output.lower() or is_system_error else 0
+    # 2. Run Compileall (Sanity Check)
+    print("DEBUG: Running sanity check with compileall...")
+    sanity_cmd = "python3 -m compileall -q ."
+    if USE_DOCKER:
+        sanity_output = tester.run_in_sandbox(state.repo_path, sanity_cmd)
+    else:
+        sanity_output = tester.run_local(state.repo_path, sanity_cmd)
     
-    # Fallback: If pytest found nothing or passed without errors, run a comprehensive sanity check
-    if pytest_failures == 0:
-        print("DEBUG: Pytest reported no failures. Running sanity check with compileall...")
-        sanity_cmd = "python3 -m compileall -q ."
-        if USE_DOCKER:
-            sanity_output = tester.run_in_sandbox(state.repo_path, sanity_cmd)
-        else:
-            sanity_output = tester.run_local(state.repo_path, sanity_cmd)
+    if sanity_output.strip():
+        print(f"DEBUG: Sanity check found potential issues: {len(sanity_output)} chars")
+        test_output += "\n--- SANITY CHECK (COMPILEALL) ---\n" + sanity_output
+
+    # 3. Run Ruff for Linting
+    print("DEBUG: Running Ruff for linting...")
+    lint_cmd = "ruff check --output-format concise ."
+    if USE_DOCKER:
+        lint_output = tester.run_in_sandbox(state.repo_path, lint_cmd)
+    else:
+        lint_output = tester.run_local(state.repo_path, lint_cmd)
+    
+    if lint_output.strip():
+        print(f"DEBUG: Ruff output captured ({len(lint_output)} chars)")
+        test_output += "\n--- LINTING CHECK (RUFF) ---\n" + lint_output
+
+    # 4. Run AI Logic Auditor (Comprehensive Sweep)
+    print("DEBUG: Performing AI Logic Audit (Parallel)...")
+    from app.utils.ai_utils import call_ai
+    
+    async def run_ai_audit():
+        # Optimization: If standard tests or linters already failed, skip the expensive AI logic sweep for this iteration
+        has_lint_errors = "--- LINTING CHECK" in test_output and any(re.match(r"(\S+):(\d+):(\d+):", line) for line in test_output.splitlines())
+        has_test_failures = "failed" in test_output.lower() or "error" in test_output.lower() or "*** error compiling" in test_output.lower()
         
-        if sanity_output.strip():
-            print(f"DEBUG: Sanity check found potential issues: {len(sanity_output)} chars")
-            test_output += "\n--- SANITY CHECK (COMPILEALL) ---\n" + sanity_output
-
-        # NEW: Run Ruff for Linting (Mandatory hackathon requirement)
-        print("DEBUG: Running Ruff for linting...")
-        lint_cmd = "ruff check --output-format concise ."
-        if USE_DOCKER:
-            lint_output = tester.run_in_sandbox(state.repo_path, lint_cmd)
-        else:
-            lint_output = tester.run_local(state.repo_path, lint_cmd)
-        
-        # Check if we actually found linting errors (not just a command error)
-        lint_found = any(re.match(r"(\S+):(\d+):(\d+):", line) for line in lint_output.splitlines())
-
-        if lint_output.strip():
-            print(f"DEBUG: Ruff output captured ({len(lint_output)} chars)")
-            test_output += "\n--- LINTING CHECK (RUFF) ---\n" + lint_output
-
-        # NEW: Final Fallback - AI Logic Auditor (Catch semantic bugs like the list-mutation error)
-        if not lint_found:
-            print("DEBUG: Performing AI Logic Audit (Final Fallback)...")
+        if has_test_failures or has_lint_errors:
+            print("DEBUG: Bypassing AI Logic Audit because standard tests/linters already found failures (speed optimization).")
+            return ""
             
-            async def run_ai_audit():
+        try:
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            files = [f for f in os.listdir(state.repo_path) if f.endswith('.py')]
+            if not files:
+                return ""
+                
+            code_contexts = []
+            for f_name in files:
                 try:
-                    client = genai.Client(api_key=GEMINI_API_KEY)
-                    models_to_try = ["gemini-flash-latest", "gemini-2.0-flash-lite", "gemini-2.0-flash", "gemini-exp-1206"]
-                    
-                    files = [f for f in os.listdir(state.repo_path) if f.endswith('.py')]
-                    for f_name in files:
-                        with open(os.path.join(state.repo_path, f_name), 'r') as f:
-                            code = f.read()
-                        
-                        audit_prompt = f"Analyze this Python code for LOGICAL BUGS or REDUNDANCY. If a logical bug is found, return EXACTLY: '[BUG]: {f_name}:line: message'. If the entire file is redundant, malicious, or should be removed, return EXACTLY: '[DELETE]: {f_name}: message'. If clean, return 'CLEAN'.\n\nCODE:\n{code}"
-                        
-                        audit_result = None
-                        for model in models_to_try:
-                            try:
-                                response = client.models.generate_content(model=model, contents=audit_prompt)
-                                audit_result = response.text
-                                break
-                            except Exception as e:
-                                if "429" in str(e):
-                                    print(f"DEBUG: Model {model} hit quota. Retrying in 20s with next model...")
-                                    await asyncio.sleep(20)
-                                    continue
-                                print(f"DEBUG: AI Logic Audit failed for {model}: {e}")
-                                continue
-
-                        if audit_result and ("[BUG]:" in audit_result or "[DELETE]:" in audit_result):
-                            print(f"DEBUG: AI Logic Auditor found a finding in {f_name}!")
-                            return f"\n--- AI LOGIC AUDIT ---\n{audit_result.strip()}\n"
-                    return ""
+                    with open(os.path.join(state.repo_path, f_name), 'r') as f:
+                        code = f.read()
+                    code_contexts.append(f"--- FILE: {f_name} ---\n{code}")
                 except Exception as e:
-                    print(f"DEBUG: AI Logic Audit outer error: {e}")
-                    return ""
+                    print(f"DEBUG: Could not read {f_name} for audit: {e}")
+                    
+            combined_code = "\n".join(code_contexts)
+            
+            audit_prompt = f"Analyze these Python files for LOGICAL BUGS or REDUNDANCY. If a logical bug is found, return EXACTLY: '[BUG]: filename:line: message'. If an entire file is redundant or harmful, return EXACTLY: '[DELETE]: filename: message'. Do not return anything else.\n\nFILES:\n{combined_code}"
+            
+            result = await call_ai(client, audit_prompt)
+            if result and ("[BUG]:" in result or "[DELETE]:" in result):
+                return f"\n--- AI LOGIC AUDIT ---\n{result}\n"
+            return ""
+        except Exception as e:
+            print(f"DEBUG: AI Logic Audit outer error: {e}")
+            return ""
 
-            # Run the async audit in the current loop
-            audit_log = await run_ai_audit()
-            test_output += audit_log
+    audit_log = await run_ai_audit()
+    test_output += audit_log
+
+
 
     print(f"DEBUG: Final Test Output Length: {len(test_output)}")
     print(f"DEBUG: Final Test Output (snippet):\n{test_output[:500]}")

@@ -77,9 +77,10 @@ class RunRequest(BaseModel):
 
 @app.post("/run-agent")
 async def run_agent(request: RunRequest):
+    import re
     # Sanitize team/leader names for branch creation
-    clean_team = request.team_name.upper().replace(" ", "_")
-    clean_leader = request.team_leader.upper().replace(" ", "_")
+    clean_team = re.sub(r'[^a-zA-Z0-9_]', '', request.team_name.replace(" ", "_").upper())
+    clean_leader = re.sub(r'[^a-zA-Z0-9_]', '', request.team_leader.replace(" ", "_").upper())
     branch_name = f"{clean_team}_{clean_leader}_AI_Fix"
 
     initial_state = AgentState(
