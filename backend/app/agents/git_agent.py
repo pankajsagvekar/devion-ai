@@ -6,8 +6,10 @@ async def git_agent(state: AgentState) -> AgentState:
     print("--- GIT AGENT ---")
     
     if not state.fixes_applied:
+        print("DEBUG: Git Agent skipping - no fixes applied yet.")
         return state
 
+    print(f"DEBUG: Git Agent starting commit/push for {len(state.fixes_applied)} fixes.")
     git_svc = GitService()
     last_fix = state.fixes_applied[-1]
     

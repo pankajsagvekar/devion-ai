@@ -13,6 +13,9 @@ GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 # This should be your frontend URL or a specific backend endpoint
 GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/auth/callback")
 
+# Execution Mode
+USE_DOCKER = os.getenv("USE_DOCKER", "true").lower() == "true"
+
 if not GEMINI_API_KEY:
     print("WARNING: GEMINI_API_KEY not found in environment variables.")
 

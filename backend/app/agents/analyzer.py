@@ -11,24 +11,40 @@ async def analyzer_agent(state: AgentState) -> AgentState:
     output = state.current_test_results.output
     failures = []
 
-    # Regex to extract file name, line number, and error message from pytest output
-    # Example: F tests/test_math.py:5: AssertionError: 2 != 4
-    pattern = r"F\s+(.*?):(\d+):\s+(.*)"
-    matches = re.findall(pattern, output)
-
-    for file_path, line, msg in matches:
-        bug_type = "LOGIC"
-        if "SyntaxError" in msg: bug_type = "SYNTAX"
-        elif "ImportError" in msg: bug_type = "IMPORT"
-        elif "IndentationError" in msg: bug_type = "INDENTATION"
-        elif "TypeError" in msg: bug_type = "TYPE_ERROR"
-        
+    print(f"DEBUG: Analyzer processing output of length {len(output)}")
+    
+    # Improved patterns to capture more pytest failure formats
+    # Pattern 1: F tests/test_math.py:5: AssertionError
+    pattern1 = r"F\s+(.*?):(\d+):\s+(.*)"
+    # Pattern 2: _________________ test_error _________________
+    #            tests/test_math.py:5: in test_error
+    pattern2 = r"(\S+):(\d+): in \S+"
+    
+    matches1 = re.findall(pattern1, output)
+    print(f"DEBUG: Pattern 1 found {len(matches1)} matches")
+    
+    for file_path, line, msg in matches1:
         failures.append(BugMetadata(
-            file_name=file_path,
+            file_name=file_path.strip(),
             line_number=int(line),
-            error_message=msg,
-            bug_type=bug_type
+            error_message=msg.strip(),
+            bug_type="LOGIC" # Default, can be refined
         ))
 
+    if not failures:
+        # Pattern 3: *** Error compiling './demo_error.py'...
+        #            File "./demo_error.py", line 6
+        pattern3 = r"\*\*\* Error compiling '(.*?)'.*?\n\s+File \".*?\", line (\d+)"
+        matches3 = re.findall(pattern3, output, re.DOTALL)
+        print(f"DEBUG: Pattern 3 found {len(matches3)} matches")
+        for file_path, line in matches3:
+            failures.append(BugMetadata(
+                file_name=file_path.replace("./", ""),
+                line_number=int(line),
+                error_message="SyntaxError identified by compileall",
+                bug_type="SYNTAX"
+            ))
+
     state.current_test_results.failures = failures
+    print(f"DEBUG: Analyzer identified {len(failures)} failures total")
     return state

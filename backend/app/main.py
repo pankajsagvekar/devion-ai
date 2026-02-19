@@ -19,6 +19,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health():
+    return {"status": "ok", "mode": "debug", "time": time.time()}
+
 # OAuth Endpoints
 @app.get("/auth/login")
 async def login_github():
@@ -53,7 +57,7 @@ async def auth_callback(code: str = Query(None)):
             raise HTTPException(status_code=400, detail=f"Failed to get token: {token_data.get('error_description', 'Unknown error')}")
             
         # Redirect back to frontend with the token
-        frontend_url = "http://localhost:5173" # Update this for production
+        frontend_url = "http://localhost:8080" # Update this for production
         return RedirectResponse(f"{frontend_url}/?token={token_data['access_token']}")
 
 class RunRequest(BaseModel):
@@ -88,4 +92,5 @@ async def run_agent(request: RunRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Enable reload=True for development to pick up changes automatically
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
