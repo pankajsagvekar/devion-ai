@@ -26,11 +26,13 @@ const Header: React.FC<HeaderProps> = ({
                     className="flex items-center gap-4 cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => navigate("/")}
                 >
-                    <img
-                        src="/devion.png"
-                        alt="Devion-AI Logo"
-                        className="w-14 h-14 object-contain rounded-xl brightness-110 contrast-125 sepia-[.3] hue-rotate-[10deg] saturate-[1.5]"
-                    />
+                    <div className="relative group">
+                        <img
+                            src="/devion.png"
+                            alt="Devion-AI Logo"
+                            className="relative w-14 h-14 object-contain rounded-xl"
+                        />
+                    </div>
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">
                             <span className="text-white/90">
