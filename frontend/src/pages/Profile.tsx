@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchGithubUser } from "@/lib/api";
-import { Bot, Github, Mail, MapPin, User, LogOut, ArrowLeft, ExternalLink, Calendar, Code2, Globe } from "lucide-react";
+import { Bot, Github, Mail, MapPin, User, ArrowLeft, ExternalLink, Calendar, Code2, Globe } from "lucide-react";
 import { motion } from "framer-motion";
+import Header from "@/components/Header";
+import BackgroundEffects from "@/components/BackgroundEffects";
 
 interface GithubUser {
     login: string;
@@ -22,7 +24,7 @@ interface GithubUser {
 }
 
 const Profile = () => {
-    const [user, setUser] = useState<GithubUser | null>(null);
+    const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -45,6 +47,10 @@ const Profile = () => {
         navigate("/");
     };
 
+    const handleLogin = () => {
+        window.location.href = "http://localhost:8000/auth/login";
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
@@ -60,26 +66,15 @@ const Profile = () => {
 
     return (
         <div className="min-h-screen bg-background bg-mesh bg-grid relative overflow-hidden">
-            {/* Floating orbs */}
-            <div className="fixed top-20 right-0 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[130px] animate-orb-1 pointer-events-none" />
-            <div className="fixed bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px] animate-orb-2 pointer-events-none" />
+            <BackgroundEffects />
 
-            {/* Header */}
-            <header className="glass-strong sticky top-0 z-50 border-b border-border/30">
-                <div className="container flex items-center justify-between py-4">
-                    <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/")}>
-                        <img src="/devion.png" alt="Devion-AI Logo" className="w-12 h-12 object-contain" />
-                        <h1 className="text-xl font-heading font-bold text-gradient tracking-tight hidden sm:block">Devion-AI</h1>
-                    </div>
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/20 border border-border/50 text-sm font-medium hover:bg-secondary/30 transition-colors"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Logout
-                    </button>
-                </div>
-            </header>
+            <Header
+                isLoggedIn={true}
+                userData={user}
+                handleLogin={handleLogin}
+                handleLogout={handleLogout}
+                showAiBadge={false}
+            />
 
             <main className="container py-12 relative z-10 max-w-4xl">
                 <motion.button

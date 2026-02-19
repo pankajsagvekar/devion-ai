@@ -75,13 +75,22 @@ export default function InputSection() {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="glass-card p-8 glow-primary relative overflow-hidden"
+      className={`glass-card p-8 relative overflow-hidden transition-all duration-700 ${state.isRunning ? 'border-primary/50 shadow-[0_0_50px_-12px_rgba(234,179,8,0.3)]' : 'glow-primary'}`}
     >
+      {/* Ambient Loading Light (only visible when running) */}
+      {state.isRunning && (
+        <>
+          <div className="absolute inset-0 bg-primary/5 animate-pulse-slow z-0" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/10 to-transparent h-1/2 w-full animate-ambient-scan z-0" />
+          <div className="absolute -inset-[100%] bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.15)_0%,transparent_50%)] animate-drift z-0" />
+        </>
+      )}
+
       {/* Decorative corner accent */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[40px] rounded-full" />
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-cyan/5 blur-[30px] rounded-full" />
 
-      <div className="flex items-center justify-between mb-8 relative">
+      <div className="flex items-center justify-between mb-8 relative z-10">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-primary/15 border border-primary/20">
             <Terminal className="w-5 h-5 text-primary" />
@@ -99,7 +108,7 @@ export default function InputSection() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 relative">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6 relative z-10">
         <div className="md:col-span-3">
           <label className="flex items-center gap-1.5 text-sm font-medium text-secondary-foreground mb-2">
             <GitBranch className="w-3.5 h-3.5 text-primary" />
@@ -163,7 +172,7 @@ export default function InputSection() {
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className="flex items-center gap-3 p-4 rounded-xl bg-primary/8 border border-primary/15 relative overflow-hidden"
+          className="flex items-center gap-3 p-4 rounded-xl bg-primary/8 border border-primary/15 relative overflow-hidden z-10"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-cyan/5 animate-shimmer" style={{ backgroundSize: "200% 100%" }} />
           <div className="relative flex items-center gap-3">
