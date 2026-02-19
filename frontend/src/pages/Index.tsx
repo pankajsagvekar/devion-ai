@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { DashboardProvider, useDashboard } from "@/context/DashboardContext";
+import AppliedFixesList from "@/components/AppliedFixesList";
+import BackgroundEffects from "@/components/BackgroundEffects";
+import CITimeline from "@/components/CITimeline";
+import FixesTable from "@/components/FixesTable";
+import Header from "@/components/Header";
 import InputSection from "@/components/InputSection";
 import RunSummary from "@/components/RunSummary";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
-import FixesTable from "@/components/FixesTable";
-import CITimeline from "@/components/CITimeline";
-import Header from "@/components/Header";
-import BackgroundEffects from "@/components/BackgroundEffects";
+import { DashboardProvider, useDashboard } from "@/context/DashboardContext";
 import { fetchGithubUser } from "@/lib/api";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) => {
   const { state } = useDashboard();
@@ -64,6 +65,8 @@ const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) 
                   <CITimeline />
                 </div>
               </div>
+
+              <AppliedFixesList />
             </motion.section>
           )}
         </AnimatePresence>
@@ -75,7 +78,7 @@ const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) 
             transition={{ delay: 1 }}
             className="py-20 text-center border-t border-dashed border-border/30"
           >
-            
+
           </motion.div>
         )}
       </main>

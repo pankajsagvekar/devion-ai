@@ -1,8 +1,8 @@
-import { motion } from "framer-motion";
-import { GitBranch, Play, Loader2, Github } from "lucide-react";
-import axios from "axios";
-import { useDashboard, generateMockResults } from "@/context/DashboardContext";
+import { useDashboard } from "@/context/DashboardContext";
 import api from "@/lib/api";
+import axios from "axios";
+import { motion } from "framer-motion";
+import { GitBranch, Github, Loader2, Play } from "lucide-react";
 import Threads from "./Threads";
 
 export default function InputSection() {
@@ -26,39 +26,43 @@ export default function InputSection() {
     dispatch({ type: "START_RUN" });
 
     // Proactive Branch Creation (Ensure branch exists on GitHub immediately)
-    try {
-      const repoParts = state.repoUrl.replace("https://github.com/", "").split("/");
-      const owner = repoParts[0];
-      const repo = repoParts[1].replace(".git", "");
-
-      // Get Default Branch
-      const repoRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
-        headers: { Authorization: `token ${token}` }
-      });
-      const defaultBranch = repoRes.data.default_branch;
-
-      // Get SHA
-      const refRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${defaultBranch}`, {
-        headers: { Authorization: `token ${token}` }
-      });
-      const sha = refRes.data.object.sha;
-
-      // Create Ref
+    if (state.repoUrl.includes("github.com")) {
       try {
-        await axios.post(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
-          ref: `refs/heads/${branchName}`,
-          sha: sha
-        }, {
-          headers: { Authorization: `token ${token}` }
-        });
-        console.log(`Created branch ${branchName} on GitHub`);
-      } catch (err: any) {
-        if (err.response?.status !== 422) { // 422 means already exists
-          console.error("Failed to create branch via API:", err);
+        const repoParts = state.repoUrl.replace("https://github.com/", "").split("/");
+        const owner = repoParts[0];
+        const repo = repoParts[1]?.replace(".git", "");
+
+        if (owner && repo && token) {
+          // Get Default Branch
+          const repoRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
+            headers: { Authorization: `token ${token}` }
+          });
+          const defaultBranch = repoRes.data.default_branch;
+
+          // Get SHA
+          const refRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${defaultBranch}`, {
+            headers: { Authorization: `token ${token}` }
+          });
+          const sha = refRes.data.object.sha;
+
+          // Create Ref
+          try {
+            await axios.post(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
+              ref: `refs/heads/${branchName}`,
+              sha: sha
+            }, {
+              headers: { Authorization: `token ${token}` }
+            });
+            console.log(`Created branch ${branchName} on GitHub`);
+          } catch (err: any) {
+            if (err.response?.status !== 422) { // 422 means already exists
+              console.error("Failed to create branch via API:", err);
+            }
+          }
         }
+      } catch (err) {
+        console.warn("Could not pre-create branch, falling back to backend clone:", err);
       }
-    } catch (err) {
-      console.warn("Could not pre-create branch, falling back to backend clone:", err);
     }
 
     try {
@@ -73,28 +77,29 @@ export default function InputSection() {
 
       // Map backend results to frontend state structure
       const results = {
-        branchName: data.branch_name,
-        totalFailures: data.total_failures,
-        totalFixes: data.total_fixes,
-        ciStatus: data.final_status.toLowerCase() as "passed" | "failed",
-        timeTaken: `${(data.total_time_seconds / 60).toFixed(1)} min`,
+        branchName: data.branch_name || branchName,
+        totalFailures: typeof data.total_failures === 'number' ? data.total_failures : 0,
+        totalFixes: typeof data.total_fixes === 'number' ? data.total_fixes : 0,
+        ciStatus: (data.final_status?.toLowerCase() || "failed") as "passed" | "failed",
+        timeTaken: data.total_time_seconds ? `${(data.total_time_seconds / 60).toFixed(1)} min` : "0.0 min",
         baseScore: data.score_calculation?.base_score || 100,
         speedBonus: data.score_calculation?.speed_bonus || 0,
         efficiencyPenalty: data.score_calculation?.efficiency_penalty || 0,
         finalScore: data.score_calculation?.final_score || 0,
-        totalCommits: data.commit_count,
+        totalCommits: data.commit_count || 0,
         fixes: (data.commit_log || []).map((entry: any) => ({
           file: entry.file || "unknown",
-          bugType: (entry.bug_type || "LOGIC") as any,
+          bugType: (entry.bug_type || "DEFAULT") as any,
           lineNumber: entry.line || 0,
           commitMessage: entry.commit_message || "AI Fix",
-          status: entry.status?.toLowerCase() === "fixed" ? "fixed" : 
-                  entry.status?.toLowerCase() === "deleted" ? "deleted" : "failed"
+          status: entry.status?.toLowerCase() === "fixed" ? "fixed" :
+            entry.status?.toLowerCase() === "deleted" ? "deleted" : "failed"
         })),
+        fixesApplied: data.fixes_applied || [],
         ciRuns: [
           {
-            iteration: data.iterations_used,
-            status: data.final_status?.toLowerCase() as any,
+            iteration: data.iterations_used || 1,
+            status: (data.final_status?.toLowerCase() || "failed") as any,
             timestamp: new Date().toISOString()
           }
         ],
@@ -102,6 +107,11 @@ export default function InputSection() {
       };
 
       dispatch({ type: "FINISH_RUN", payload: results });
+
+      // Sync back canonical names if backend changed them
+      if (data.team_name) dispatch({ type: "SET_FIELD", field: "teamName", value: data.team_name });
+      if (data.leader_name) dispatch({ type: "SET_FIELD", field: "teamLeader", value: data.leader_name });
+
     } catch (error: any) {
       console.error("Failed to run agent:", error);
       const errorMsg = error.response?.data?.detail || "System bridge failure. Check your parameters.";
@@ -207,7 +217,7 @@ export default function InputSection() {
           </div>
         </div>
 
-        
+
 
         {state.error && (
           <motion.div

@@ -8,3 +8,4 @@ pytest-json-report
 httpx
 google-genai
 python-dotenv
+ruff

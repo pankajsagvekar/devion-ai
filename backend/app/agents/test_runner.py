@@ -20,6 +20,7 @@ async def test_runner_agent(state: AgentState) -> AgentState:
         git_svc.create_branch(state.repo_path, state.branch_name, state.github_token)
 
     # Run tests
+    python_cmd = "python" if os.name == "nt" and not USE_DOCKER else "python3"
     cmd = "pytest --maxfail=5"
     if USE_DOCKER:
         test_output = tester.run_in_sandbox(state.repo_path, cmd)
@@ -27,19 +28,25 @@ async def test_runner_agent(state: AgentState) -> AgentState:
         test_output = tester.run_local(state.repo_path, cmd)
     
     # Calculate preliminary failures from pytest
-    is_system_error = any(msg in test_output.lower() for msg in ["cannot connect to the docker daemon", "docker: command not found", "permission denied"])
+    is_system_error = any(msg in test_output.lower() for msg in [
+        "cannot connect to the docker daemon", 
+        "docker: command not found", 
+        "permission denied", 
+        "python was not found",
+        "is not recognized as an internal or external command"
+    ])
     pytest_failures = 1 if "failed" in test_output.lower() or "error" in test_output.lower() or is_system_error else 0
     
     # Fallback: If pytest found nothing or passed without errors, run a comprehensive sanity check
     if pytest_failures == 0:
         print("DEBUG: Pytest reported no failures. Running sanity check with compileall...")
-        sanity_cmd = "python3 -m compileall -q ."
+        sanity_cmd = f"{python_cmd} -m compileall -q ."
         if USE_DOCKER:
             sanity_output = tester.run_in_sandbox(state.repo_path, sanity_cmd)
         else:
             sanity_output = tester.run_local(state.repo_path, sanity_cmd)
         
-        if sanity_output.strip():
+        if sanity_output.strip() and "python was not found" not in sanity_output.lower():
             print(f"DEBUG: Sanity check found potential issues: {len(sanity_output)} chars")
             test_output += "\n--- SANITY CHECK (COMPILEALL) ---\n" + sanity_output
 
