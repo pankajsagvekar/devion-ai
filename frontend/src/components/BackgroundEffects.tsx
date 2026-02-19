@@ -1,7 +1,7 @@
 import React from 'react';
 import Threads from './Threads';
 
-const BackgroundEffects = () => {
+const BackgroundEffects = ({ lowPower = false }: { lowPower?: boolean }) => {
     return (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
             {/* Cinematic Threads Animation */}
@@ -10,7 +10,8 @@ const BackgroundEffects = () => {
                     color={[0.6, 0.4, 1]}
                     amplitude={1.2}
                     distance={0.4}
-                    enableMouseInteraction={true}
+                    enableMouseInteraction={!lowPower}
+                    lowPower={lowPower}
                 />
             </div>
 

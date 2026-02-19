@@ -85,6 +85,7 @@ export default function InputSection() {
           amplitude={0.8}
           distance={0.2}
           enableMouseInteraction={false}
+          lowPower={true}
         />
       </div>
 

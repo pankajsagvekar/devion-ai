@@ -16,7 +16,7 @@ const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) 
 
   return (
     <div className="min-h-screen bg-background bg-mesh bg-grid relative overflow-hidden selection:bg-primary/30">
-      <BackgroundEffects />
+      <BackgroundEffects lowPower={state.isRunning} />
 
       <Header
         isLoggedIn={isLoggedIn}
