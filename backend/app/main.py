@@ -68,7 +68,7 @@ async def auth_callback(code: str = Query(None)):
             raise HTTPException(status_code=400, detail=f"Failed to get token: {token_data.get('error_description', 'Unknown error')}")
             
         # Redirect back to frontend with the token
-        frontend_url = "http://localhost:8080" # Update this for production
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:8080")
         return RedirectResponse(f"{frontend_url}/?token={token_data['access_token']}")
 
 class RunRequest(BaseModel):
