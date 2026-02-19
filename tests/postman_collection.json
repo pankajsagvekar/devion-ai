@@ -1,0 +1,327 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Autonomous CI/CD Healing Agent API",
+    "description": "Postman collection for testing the Autonomous CI/CD Healing Agent backend.\n\nBase URL: http://localhost:8000\n\nEndpoints:\n1. GET /health - Check if the server is running\n2. POST /run-agent - Trigger the full multi-agent CI/CD healing workflow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "Base URL of the backend server"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the FastAPI server is healthy and running."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('status');",
+                  "    pm.expect(json.status).to.eql('healthy');",
+                  "});",
+                  "",
+                  "pm.test('Response time is less than 500ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Healthy Response",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/health",
+                  "host": ["{{base_url}}"],
+                  "path": ["health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"status\": \"healthy\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Run Agent",
+      "item": [
+        {
+          "name": "POST /run-agent - Valid Request (Happy Path)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"repository_url\": \"https://github.com/your-org/your-repo.git\",\n    \"team_name\": \"Team Alpha\",\n    \"leader_name\": \"Jane Doe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/run-agent",
+              "host": ["{{base_url}}"],
+              "path": ["run-agent"]
+            },
+            "description": "Triggers the full CI/CD Healing Agent workflow.\n\nThis will:\n1. Clone the given repository\n2. Create branch: TEAM_ALPHA_JANE_DOE_AI_FIX\n3. Run tests in Docker\n4. Analyze failures and apply fixes\n5. Commit and push with [AI-AGENT] prefix\n6. Return score and results"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains required fields', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('repository_url');",
+                  "    pm.expect(json).to.have.property('team_name');",
+                  "    pm.expect(json).to.have.property('leader_name');",
+                  "    pm.expect(json).to.have.property('branch_name');",
+                  "    pm.expect(json).to.have.property('total_failures');",
+                  "    pm.expect(json).to.have.property('total_fixes');",
+                  "    pm.expect(json).to.have.property('iterations_used');",
+                  "    pm.expect(json).to.have.property('commit_count');",
+                  "    pm.expect(json).to.have.property('final_status');",
+                  "    pm.expect(json).to.have.property('total_time_seconds');",
+                  "    pm.expect(json).to.have.property('score_calculation');",
+                  "});",
+                  "",
+                  "pm.test('final_status is PASSED or FAILED', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(['PASSED', 'FAILED']).to.include(json.final_status);",
+                  "});",
+                  "",
+                  "pm.test('branch_name format is correct', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.branch_name).to.match(/^[A-Z0-9_]+_AI_FIX$/);",
+                  "});",
+                  "",
+                  "pm.test('score_calculation has correct keys', function () {",
+                  "    const score = pm.response.json().score_calculation;",
+                  "    pm.expect(score).to.have.property('base_score');",
+                  "    pm.expect(score).to.have.property('speed_bonus');",
+                  "    pm.expect(score).to.have.property('efficiency_penalty');",
+                  "    pm.expect(score).to.have.property('final_score');",
+                  "});",
+                  "",
+                  "pm.test('base_score is 100', function () {",
+                  "    const score = pm.response.json().score_calculation;",
+                  "    pm.expect(score.base_score).to.eql(100);",
+                  "});",
+                  "",
+                  "// Save branch_name for other requests",
+                  "const json = pm.response.json();",
+                  "if (json.branch_name) {",
+                  "    pm.environment.set('branch_name', json.branch_name);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Successful Agent Run",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"repository_url\": \"https://github.com/your-org/your-repo.git\",\n    \"team_name\": \"Team Alpha\",\n    \"leader_name\": \"Jane Doe\"\n}"
+                },
+                "url": { "raw": "{{base_url}}/run-agent" }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n    \"repository_url\": \"https://github.com/your-org/your-repo.git\",\n    \"team_name\": \"Team Alpha\",\n    \"leader_name\": \"Jane Doe\",\n    \"branch_name\": \"TEAM_ALPHA_JANE_DOE_AI_FIX\",\n    \"total_failures\": 2,\n    \"total_fixes\": 2,\n    \"iterations_used\": 2,\n    \"commit_count\": 2,\n    \"final_status\": \"PASSED\",\n    \"total_time_seconds\": 145.37,\n    \"score_calculation\": {\n        \"base_score\": 100,\n        \"speed_bonus\": 10,\n        \"efficiency_penalty\": 0,\n        \"final_score\": 110\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /run-agent - With Spaces in Names",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"repository_url\": \"https://github.com/your-org/buggy-project.git\",\n    \"team_name\": \"Code Ninjas\",\n    \"leader_name\": \"John Smith\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/run-agent",
+              "host": ["{{base_url}}"],
+              "path": ["run-agent"]
+            },
+            "description": "Tests that team/leader names with spaces are correctly formatted into the branch name.\n\nExpected branch: CODE_NINJAS_JOHN_SMITH_AI_FIX"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Spaces converted to underscores in branch name', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.branch_name).to.not.include(' ');",
+                  "    pm.expect(json.branch_name).to.eql('CODE_NINJAS_JOHN_SMITH_AI_FIX');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /run-agent - Missing repository_url (Validation Error)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"team_name\": \"Team Beta\",\n    \"leader_name\": \"Alice\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/run-agent",
+              "host": ["{{base_url}}"],
+              "path": ["run-agent"]
+            },
+            "description": "Tests that missing required fields return a 422 Unprocessable Entity error."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 422 Unprocessable Entity', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('Response contains validation error details', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property('detail');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": [
+            {
+              "name": "Validation Error",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "body": "{\n    \"detail\": [\n        {\n            \"loc\": [\"body\", \"repository_url\"],\n            \"msg\": \"field required\",\n            \"type\": \"value_error.missing\"\n        }\n    ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /run-agent - Empty Body (Validation Error)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/run-agent",
+              "host": ["{{base_url}}"],
+              "path": ["run-agent"]
+            },
+            "description": "Tests that an empty body returns a 422 Unprocessable Entity error with details for all missing fields."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 422', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test('All 3 fields are reported as missing', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.detail.length).to.be.at.least(3);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
