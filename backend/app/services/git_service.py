@@ -7,14 +7,24 @@ class GitService:
         self.base_path = base_path
         os.makedirs(self.base_path, exist_ok=True)
 
-    def clone_repo(self, repo_url: str, team_name: str) -> str:
+    def _get_authenticated_url(self, repo_url: str, token: str) -> str:
+        if not token:
+            return repo_url
+        # Convert https://github.com/user/repo to https://token@github.com/user/repo
+        if repo_url.startswith("https://"):
+            return repo_url.replace("https://", f"https://{token}@")
+        return repo_url
+
+    def clone_repo(self, repo_url: str, team_name: str, token: str = "") -> str:
         repo_name = repo_url.split("/")[-1].replace(".git", "")
         target_path = os.path.join(self.base_path, f"{team_name}_{repo_name}")
+        
+        auth_url = self._get_authenticated_url(repo_url, token)
         
         if os.path.exists(target_path):
             repo = git.Repo(target_path)
         else:
-            repo = git.Repo.clone_from(repo_url, target_path)
+            repo = git.Repo.clone_from(auth_url, target_path)
         
         return target_path
 
@@ -26,12 +36,18 @@ class GitService:
             new_branch = repo.create_head(branch_name)
             repo.git.checkout(new_branch)
 
-    def commit_and_push(self, repo_path: str, branch_name: str, message: str):
+    def commit_and_push(self, repo_path: str, branch_name: str, message: str, token: str = ""):
         repo = git.Repo(repo_path)
         repo.git.add(A=True)
         if repo.is_dirty():
             repo.index.commit(f"[AI-AGENT] {message}")
+            
+            # Update remote URL with token if provided for the push
             origin = repo.remote(name='origin')
+            if token:
+                auth_url = self._get_authenticated_url(origin.url, token)
+                origin.set_url(auth_url)
+            
             origin.push(branch_name)
         else:
             print("No changes to commit.")
