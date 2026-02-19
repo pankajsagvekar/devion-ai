@@ -128,7 +128,7 @@ export default function InputSection() {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className={`glass-card p-10 md:p-12 relative overflow-hidden transition-all duration-700 edge-light h-full min-h-[500px] flex flex-col justify-center ${state.isRunning ? 'border-primary/50 shadow-[0_0_80px_-20px_rgba(147,51,234,0.3)]' : 'glow-intense'}`}
+      className={`glass-card p-6 md:p-12 relative overflow-hidden transition-all duration-700 edge-light h-full min-h-[400px] md:min-h-[500px] flex flex-col justify-center ${state.isRunning ? 'border-primary/50 shadow-[0_0_80px_-20px_rgba(147,51,234,0.3)]' : 'glow-intense'}`}
     >
       {/* Localized Cinematic Background (Matches Global Effect) */}
       <div className="absolute inset-0 opacity-[0.15] pointer-events-none z-0">
@@ -183,10 +183,10 @@ export default function InputSection() {
               value={state.repoUrl}
               onChange={(e) => dispatch({ type: "SET_FIELD", field: "repoUrl", value: e.target.value })}
               placeholder="https://github.com/universal/nexus-core"
-              className="w-full px-8 py-5 rounded-full bg-background/40 backdrop-blur-md border border-border/40 text-foreground placeholder:text-muted-foreground/30 font-mono text-base focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+              className="w-full px-6 md:px-8 py-4 md:py-5 rounded-full bg-background/40 backdrop-blur-md border border-border/40 text-foreground placeholder:text-muted-foreground/30 font-mono text-sm md:text-base focus:outline-none focus:border-primary/60 focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
             />
             {isLoggedIn && (
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20 text-[9px] font-black text-success uppercase tracking-[0.1em]">
+              <div className="hidden md:flex absolute right-6 top-1/2 -translate-y-1/2 items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20 text-[9px] font-black text-success uppercase tracking-[0.1em]">
                 <div className="w-1 h-1 rounded-full bg-success animate-pulse" />
                 Secure Link
               </div>

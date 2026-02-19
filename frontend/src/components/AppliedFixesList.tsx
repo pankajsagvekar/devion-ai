@@ -11,7 +11,7 @@ export default function AppliedFixesList() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="glass-card p-8"
+            className="glass-card p-4 md:p-8"
         >
             <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">

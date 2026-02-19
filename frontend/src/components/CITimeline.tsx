@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { Activity, CheckCircle2, XCircle, Radio } from "lucide-react";
 import { useDashboard } from "@/context/DashboardContext";
+import { motion } from "framer-motion";
+import { Activity, CheckCircle2, Radio, XCircle } from "lucide-react";
 
 export default function CITimeline() {
   const { state } = useDashboard();
@@ -13,7 +13,7 @@ export default function CITimeline() {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.35, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="glass-card p-8"
+      className="glass-card p-4 md:p-8"
     >
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
@@ -49,31 +49,28 @@ export default function CITimeline() {
                 transition={{ delay: 0.5 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
                 className="flex items-start gap-5"
               >
-                <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${
-                  isPassed
+                <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${isPassed
                     ? "bg-success/15 border-success/30"
                     : "bg-destructive/15 border-destructive/30"
-                } ${isLast && isPassed ? "glow-success" : ""}`}>
+                  } ${isLast && isPassed ? "glow-success" : ""}`}>
                   {isPassed ? (
                     <CheckCircle2 className="w-4 h-4 text-success" />
                   ) : (
                     <XCircle className="w-4 h-4 text-destructive" />
                   )}
                 </div>
-                <div className={`flex-1 p-4 rounded-xl border transition-all ${
-                  isPassed
+                <div className={`flex-1 p-4 rounded-xl border transition-all ${isPassed
                     ? "bg-success/5 border-success/15 hover:border-success/30"
                     : "bg-destructive/5 border-destructive/15 hover:border-destructive/30"
-                }`}>
+                  }`}>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-heading font-semibold text-foreground">
                       Iteration #{run.iteration}
                     </span>
-                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border ${
-                      isPassed
+                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border ${isPassed
                         ? "bg-success/15 text-success border-success/20"
                         : "bg-destructive/15 text-destructive border-destructive/20"
-                    }`}>
+                      }`}>
                       {run.status}
                     </span>
                   </div>
