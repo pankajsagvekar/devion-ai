@@ -1,6 +1,6 @@
+import { Github, LogOut, Sparkles, User } from "lucide-react";
 import React from 'react';
 import { useNavigate } from "react-router-dom";
-import { Sparkles, LogOut, Github, User } from "lucide-react";
 
 interface HeaderProps {
     isLoggedIn: boolean;
@@ -23,18 +23,18 @@ const Header: React.FC<HeaderProps> = ({
         <header className="glass-strong sticky top-0 z-50 border-b border-border/30">
             <div className="container flex items-center justify-between py-2">
                 <div
-                    className="flex items-center gap-4 cursor-pointer hover:opacity-90 transition-opacity"
+                    className="flex items-center gap-2 md:gap-4 cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => navigate("/")}
                 >
                     <div className="relative group">
                         <img
                             src="/devion.png"
                             alt="Devion-AI Logo"
-                            className="relative w-14 h-14 object-contain rounded-xl"
+                            className="relative w-10 h-10 md:w-14 md:h-14 object-contain rounded-xl"
                         />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">
+                        <h1 className="text-lg md:text-2xl font-bold tracking-tight">
                             <span className="text-white/90">
                                 Devion-
                             </span>
@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({
                                 AI
                             </span>
                         </h1>
-                        <p className="text-xs text-muted-foreground tracking-wide">Automated Repository Analysis & Bug Fixing</p>
+                        <p className="hidden sm:block text-[10px] md:text-xs text-muted-foreground tracking-wide">Automated Repository Analysis & Bug Fixing</p>
                     </div>
                 </div>
 

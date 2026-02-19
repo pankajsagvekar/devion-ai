@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { Trophy, Zap, AlertTriangle, Award } from "lucide-react";
 import { useDashboard } from "@/context/DashboardContext";
+import { motion } from "framer-motion";
+import { AlertTriangle, Award, Trophy, Zap } from "lucide-react";
 
 export default function ScoreBreakdown() {
   const { state } = useDashboard();
@@ -20,7 +20,7 @@ export default function ScoreBreakdown() {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="glass-card p-8 h-full"
+      className="glass-card p-4 md:p-8 h-full"
     >
       <div className="flex items-center gap-2.5 mb-6">
         <Award className="w-5 h-5 text-gold" />
