@@ -18,6 +18,7 @@ export interface DashboardState {
   repoUrl: string;
   teamName: string;
   teamLeader: string;
+  githubToken: string;
   isRunning: boolean;
   hasResults: boolean;
   branchName: string;
@@ -33,17 +34,20 @@ export interface DashboardState {
   fixes: Fix[];
   ciRuns: CIRun[];
   retryLimit: number;
+  error?: string;
 }
 
 type Action =
   | { type: "SET_FIELD"; field: string; value: string }
   | { type: "START_RUN" }
-  | { type: "FINISH_RUN"; payload: Omit<DashboardState, "repoUrl" | "teamName" | "teamLeader" | "isRunning" | "hasResults"> };
+  | { type: "FINISH_RUN"; payload: Omit<DashboardState, "repoUrl" | "teamName" | "teamLeader" | "githubToken" | "isRunning" | "hasResults"> }
+  | { type: "SET_ERROR"; error: string };
 
 const initialState: DashboardState = {
   repoUrl: "",
   teamName: "",
   teamLeader: "",
+  githubToken: "",
   isRunning: false,
   hasResults: false,
   branchName: "",
@@ -64,11 +68,13 @@ const initialState: DashboardState = {
 function reducer(state: DashboardState, action: Action): DashboardState {
   switch (action.type) {
     case "SET_FIELD":
-      return { ...state, [action.field]: action.value };
+      return { ...state, [action.field]: action.value, error: undefined };
     case "START_RUN":
-      return { ...state, isRunning: true, hasResults: false };
+      return { ...state, isRunning: true, hasResults: false, error: undefined };
     case "FINISH_RUN":
       return { ...state, isRunning: false, hasResults: true, ...action.payload };
+    case "SET_ERROR":
+      return { ...state, isRunning: false, error: action.error };
     default:
       return state;
   }
@@ -95,7 +101,7 @@ export function useDashboard() {
 }
 
 // Mock data generator for demo
-export function generateMockResults(teamName: string, teamLeader: string): Omit<DashboardState, "repoUrl" | "teamName" | "teamLeader" | "isRunning" | "hasResults"> {
+export function generateMockResults(teamName: string, teamLeader: string): Omit<DashboardState, "repoUrl" | "teamName" | "teamLeader" | "githubToken" | "isRunning" | "hasResults"> {
   const bugTypes: Fix["bugType"][] = ["LINTING", "SYNTAX", "LOGIC", "TYPE_ERROR", "IMPORT", "INDENTATION"];
   const files = ["src/index.ts", "src/utils/parser.ts", "src/components/App.tsx", "lib/helpers.js", "src/api/handler.ts", "config/webpack.config.js", "src/models/user.ts", "tests/unit.test.ts"];
 
