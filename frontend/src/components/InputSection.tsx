@@ -92,24 +92,40 @@ export default function InputSection() {
         efficiencyPenalty: data.score_calculation?.efficiency_penalty || 0,
         finalScore: data.score_calculation?.final_score || 0,
         totalCommits: data.commit_count || 0,
-        fixes: (data.commit_log || []).map((entry: any) => ({
-          file: entry.file || "unknown",
-          bugType: (entry.bug_type || "DEFAULT") as any,
-          lineNumber: entry.line || 0,
-          commitMessage: entry.commit_message || "AI Fix",
-          status: entry.status?.toLowerCase() === "fixed" ? "fixed" :
-            entry.status?.toLowerCase() === "deleted" ? "deleted" : "failed"
+        fixes: (data.fixes_applied || []).map((f: string) => {
+          // Format expected: "LINTING error in src/utils.py line 15 → Fix: remove the import statement"
+          const isDelete = f.includes("→ Fix: remove the redundant or harmful file");
+          const bugTypeMatch = f.split(" error in ")[0] || "LOGIC";
+
+          let file = "unknown";
+          let lineNum = 0;
+          let action = isDelete ? "DELETE" : "FIX";
+
+          try {
+            const filePart = f.split(" error in ")[1]?.split(" line ")[0];
+            const linePart = f.split(" line ")[1]?.split(" → Fix: ")[0];
+            if (filePart) file = filePart;
+            if (linePart) lineNum = parseInt(linePart) || 1;
+          } catch (e) { }
+
+          return {
+            file: file,
+            bugType: bugTypeMatch as any,
+            lineNumber: lineNum,
+            commitMessage: f,
+            status: "fixed" as const,
+            action: action as any
+          };
+        }),
+        ciRuns: Array.from({ length: Math.max(1, data.iterations_used || 1) }, (_, i) => ({
+          iteration: i + 1,
+          status: i === (data.iterations_used || 1) - 1 ? ((data.final_status?.toLowerCase() || "failed") as any) : "failed",
+          timestamp: new Date(Date.now() - ((data.iterations_used || 1) - 1 - i) * 60000).toISOString()
         })),
         fixesApplied: data.fixes_applied || [],
-        ciRuns: [
-          {
-            iteration: data.iterations_used || 1,
-            status: (data.final_status?.toLowerCase() || "failed") as any,
-            timestamp: new Date().toISOString()
-          }
-        ],
         retryLimit: 5,
-        rawJson: data,
+        iterationsUsed: data.iterations_used || 0,
+        rawResponse: data,
       };
 
       dispatch({ type: "FINISH_RUN", payload: results });

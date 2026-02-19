@@ -35,7 +35,8 @@ export interface DashboardState {
   fixesApplied: string[];
   ciRuns: CIRun[];
   retryLimit: number;
-  rawJson?: any;
+  iterationsUsed: number;
+  rawResponse?: any;
   error?: string;
 }
 
@@ -66,6 +67,7 @@ const initialState: DashboardState = {
   fixesApplied: [],
   ciRuns: [],
   retryLimit: 5,
+  iterationsUsed: 0,
 };
 
 function reducer(state: DashboardState, action: Action): DashboardState {
@@ -144,33 +146,9 @@ export function generateMockResults(teamName: string, teamLeader: string): Omit<
     finalScore: 100 + speedBonus - efficiencyPenalty,
     totalCommits,
     fixes,
-    fixesApplied: fixes.map(f => `[AI-AGENT] Fixed ${f.bugType} in ${f.file} at line ${f.lineNumber}`),
+    fixesApplied: fixes.map(f => f.commitMessage),
     ciRuns,
     retryLimit: 5,
-    rawJson: {
-      repository_url: "https://github.com/demo/repo",
-      team_name: teamName,
-      leader_name: teamLeader,
-      branch_name: `${branchSafe}_${leaderSafe}_AI_Fix`,
-      total_failures: fixes.length,
-      total_fixes: fixes.filter(f => f.status === "fixed").length,
-      iterations_used: 3,
-      commit_count: 15,
-      final_status: "PASSED",
-      total_time_seconds: 222,
-      score_calculation: {
-        base_score: 100,
-        speed_bonus: 10,
-        efficiency_penalty: 0,
-        final_score: 110
-      },
-      commit_log: fixes.map(f => ({
-        file: f.file,
-        line: f.lineNumber,
-        bug_type: f.bugType,
-        commit_message: f.commitMessage,
-        status: f.status
-      }))
-    }
+    iterationsUsed: ciRuns.length,
   };
 }
