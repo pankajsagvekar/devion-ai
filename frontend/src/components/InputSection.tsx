@@ -109,6 +109,7 @@ export default function InputSection() {
           }
         ],
         retryLimit: 5,
+        rawJson: data,
       };
 
       dispatch({ type: "FINISH_RUN", payload: results });
@@ -201,7 +202,7 @@ export default function InputSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 px-1 ml-2">Team Signature</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 px-1 ml-2">Team Name</label>
             <input
               type="text"
               value={state.teamName}
@@ -211,7 +212,7 @@ export default function InputSection() {
             />
           </div>
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 px-1 ml-2">Directive Lead</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 px-1 ml-2">Team Leader Name</label>
             <input
               type="text"
               value={state.teamLeader}

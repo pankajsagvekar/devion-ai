@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import InputSection from "@/components/InputSection";
 import RunSummary from "@/components/RunSummary";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
+import ResultsJsonView from "@/components/ResultsJsonView";
 import { DashboardProvider, useDashboard } from "@/context/DashboardContext";
 import { fetchGithubUser } from "@/lib/api";
 import { AnimatePresence, motion } from "framer-motion";
@@ -67,6 +68,7 @@ const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) 
               </div>
 
               <AppliedFixesList />
+              <ResultsJsonView />
             </motion.section>
           )}
         </AnimatePresence>
