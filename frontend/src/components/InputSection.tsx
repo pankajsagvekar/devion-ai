@@ -139,7 +139,7 @@ export default function InputSection() {
           enableMouseInteraction={false}
           lowPower={true}
         />
-      </div>
+      </div>  
 
       {/* Ambient Lighting & Scan Lines */}
       <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-cyan/5 opacity-50 z-0" />
