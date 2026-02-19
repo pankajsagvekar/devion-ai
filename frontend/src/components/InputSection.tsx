@@ -18,6 +18,11 @@ export default function InputSection() {
       return;
     }
 
+    // If a token was provided via state, ensure it's saved to localStorage
+    if (state.githubToken && state.githubToken.trim() !== "") {
+      localStorage.setItem("github_token", state.githubToken.trim());
+    }
+
     const cleanTeam = state.teamName.toUpperCase().replace(/\s+/g, "_");
     const cleanLeader = state.teamLeader.toUpperCase().replace(/\s+/g, "_");
     const branchName = `${cleanTeam}_${cleanLeader}_AI_FIX`;
