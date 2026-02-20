@@ -149,7 +149,7 @@ const Threads: React.FC<ThreadsProps> = React.memo(({
         if (!containerRef.current) return;
         const container = containerRef.current;
 
-        const renderer = new Renderer({ alpha: true, dpr: lowPower ? 1 : Math.min(window.devicePixelRatio, 2) });
+        const renderer = new Renderer({ alpha: true, dpr: lowPower ? 1.0 : Math.min(window.devicePixelRatio, 2) });
         rendererRef.current = renderer;
         const gl = renderer.gl;
         glRef.current = gl;
@@ -171,7 +171,7 @@ const Threads: React.FC<ThreadsProps> = React.memo(({
                 uAmplitude: { value: amplitude },
                 uDistance: { value: distance },
                 uMouse: { value: new Float32Array([0.5, 0.5]) },
-                uLineCount: { value: lowPower ? 15 : 40 }
+                uLineCount: { value: lowPower ? 8 : 40 }
             }
         });
         programRef.current = program;
@@ -225,7 +225,7 @@ const Threads: React.FC<ThreadsProps> = React.memo(({
         programRef.current.uniforms.uColor.value.set(...color);
         programRef.current.uniforms.uAmplitude.value = amplitude;
         programRef.current.uniforms.uDistance.value = distance;
-        programRef.current.uniforms.uLineCount.value = lowPower ? 15 : 40;
+        programRef.current.uniforms.uLineCount.value = lowPower ? 8 : 40;
     }, [color, amplitude, distance, lowPower]);
 
     // Handle mouse events separately

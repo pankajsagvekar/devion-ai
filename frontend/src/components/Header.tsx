@@ -1,6 +1,7 @@
-import { Github, LogOut, Sparkles, User } from "lucide-react";
+import { Github, LogOut, Sparkles, User, Zap, ZapOff } from "lucide-react";
 import React from 'react';
 import { useNavigate } from "react-router-dom";
+import { useDashboard } from "@/context/DashboardContext";
 
 interface HeaderProps {
     isLoggedIn: boolean;
@@ -18,6 +19,7 @@ const Header: React.FC<HeaderProps> = ({
     showAiBadge = true
 }) => {
     const navigate = useNavigate();
+    const { state, dispatch } = useDashboard();
 
     return (
         <header className="glass-strong sticky top-0 z-50 border-b border-border/30">
@@ -47,6 +49,17 @@ const Header: React.FC<HeaderProps> = ({
                 </div>
 
                 <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => dispatch({ type: "TOGGLE_PERFORMANCE_MODE" })}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${state.performanceMode ? 'bg-amber-500/20 border-amber-500/40 text-amber-500 shadow-[0_0_15px_-3px_rgba(245,158,11,0.3)]' : 'bg-secondary/20 border-border/50 text-muted-foreground hover:bg-secondary/30'}`}
+                        title={state.performanceMode ? "Disable Performance Mode" : "Enable Performance Mode"}
+                    >
+                        {state.performanceMode ? <Zap className="w-3.5 h-3.5 fill-amber-500 animate-pulse" /> : <ZapOff className="w-3.5 h-3.5" />}
+                        <span className="text-[10px] font-black uppercase tracking-widest hidden lg:inline">
+                            {state.performanceMode ? "TURBO MODE" : "PERF MODE"}
+                        </span>
+                    </button>
+
                     {showAiBadge && (
                         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                             <Sparkles className="w-3.5 h-3.5 text-primary" />

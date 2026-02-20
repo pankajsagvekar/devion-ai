@@ -15,10 +15,13 @@ import { useSearchParams } from "react-router-dom";
 
 const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) => {
   const { state } = useDashboard();
+  
+  // Optimization: Enable lowPower mode during agent execution or if manually enabled
+  const lowPower = state.isRunning || state.performanceMode;
 
   return (
     <div className="min-h-screen bg-background bg-mesh bg-grid relative overflow-hidden selection:bg-primary/30">
-      <BackgroundEffects lowPower={state.isRunning} />
+      <BackgroundEffects lowPower={lowPower} />
 
       <Header
         isLoggedIn={isLoggedIn}
@@ -31,7 +34,7 @@ const IndexContent = ({ isLoggedIn, userData, handleLogin, handleLogout }: any) 
       {/* Main Content */}
       <main className="container pb-20 space-y-12 relative z-10 max-w-[1400px]">
         <section className="relative">
-          <InputSection />
+          <InputSection lowPower={lowPower} />
         </section>
 
         <AnimatePresence>

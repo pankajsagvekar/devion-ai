@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { GitBranch, Github, Loader2, Play } from "lucide-react";
 import Threads from "./Threads";
 
-export default function InputSection() {
+export default function InputSection({ lowPower = false }: { lowPower?: boolean }) {
   const { state, dispatch } = useDashboard();
   const isLoggedIn = !!localStorage.getItem("github_token");
 
@@ -151,7 +151,7 @@ export default function InputSection() {
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className={`glass-card p-6 md:p-12 relative overflow-hidden transition-all duration-700 edge-light h-full min-h-[400px] md:min-h-[500px] flex flex-col justify-center ${state.isRunning ? 'border-primary/50 shadow-[0_0_80px_-20px_rgba(147,51,234,0.3)]' : 'glow-intense'}`}
+      className={`glass-card p-6 md:p-12 relative overflow-hidden transition-all duration-700 edge-light h-full min-h-[400px] md:min-h-[500px] flex flex-col justify-center ${state.isRunning ? 'border-primary/50 shadow-[0_0_80px_-20px_rgba(147,51,234,0.3)]' : (lowPower ? '' : 'glow-intense')}`}
     >
       {/* Localized Cinematic Background (Matches Global Effect) */}
       <div className="absolute inset-0 opacity-[0.15] pointer-events-none z-0">
@@ -160,14 +160,14 @@ export default function InputSection() {
           amplitude={0.8}
           distance={0.2}
           enableMouseInteraction={false}
-          lowPower={true}
+          lowPower={true} // InputSection local background is always low power for contrast
         />
       </div>  
 
       {/* Ambient Lighting & Scan Lines */}
       <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-cyan/5 opacity-50 z-0" />
 
-      {state.isRunning && (
+      {state.isRunning && !lowPower && (
         <>
           <div className="absolute inset-0 bg-primary/5 animate-pulse-slow z-0" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/10 to-transparent h-1/2 w-full animate-ambient-scan z-0" />

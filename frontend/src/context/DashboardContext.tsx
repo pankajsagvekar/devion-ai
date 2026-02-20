@@ -38,13 +38,15 @@ export interface DashboardState {
   iterationsUsed: number;
   rawResponse?: any;
   error?: string;
+  performanceMode: boolean;
 }
 
 type Action =
   | { type: "SET_FIELD"; field: string; value: string }
   | { type: "START_RUN" }
-  | { type: "FINISH_RUN"; payload: Omit<DashboardState, "repoUrl" | "teamName" | "teamLeader" | "githubToken" | "isRunning" | "hasResults"> }
-  | { type: "SET_ERROR"; error: string };
+  | { type: "FINISH_RUN"; payload: Omit<DashboardState, "repoUrl" | "teamName" | "teamLeader" | "githubToken" | "isRunning" | "hasResults" | "performanceMode"> }
+  | { type: "SET_ERROR"; error: string }
+  | { type: "TOGGLE_PERFORMANCE_MODE" };
 
 const initialState: DashboardState = {
   repoUrl: "",
@@ -68,6 +70,7 @@ const initialState: DashboardState = {
   ciRuns: [],
   retryLimit: 5,
   iterationsUsed: 0,
+  performanceMode: false,
 };
 
 function reducer(state: DashboardState, action: Action): DashboardState {
@@ -80,6 +83,8 @@ function reducer(state: DashboardState, action: Action): DashboardState {
       return { ...state, isRunning: false, hasResults: true, ...action.payload };
     case "SET_ERROR":
       return { ...state, isRunning: false, error: action.error };
+    case "TOGGLE_PERFORMANCE_MODE":
+      return { ...state, performanceMode: !state.performanceMode };
     default:
       return state;
   }
@@ -150,5 +155,6 @@ export function generateMockResults(teamName: string, teamLeader: string): Omit<
     ciRuns,
     retryLimit: 5,
     iterationsUsed: ciRuns.length,
+    performanceMode: false,
   };
 }
