@@ -7,8 +7,8 @@ A multi-agent system built with LangGraph and FastAPI that autonomously clones a
 
 🌐 Deployment URL
 
-- **Frontend:** https://your-frontend-url.com
-- **Backend API:** https://your-backend-url.com
+- **Frontend:** https://devion-ai.vercel.app/
+- **Backend API:** https://devion-ai.onrender.com
 
 ---
 
