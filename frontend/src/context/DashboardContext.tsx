@@ -36,7 +36,7 @@ export interface DashboardState {
   ciRuns: CIRun[];
   retryLimit: number;
   iterationsUsed: number;
-  rawResponse?: any;
+  rawJson?: any;
   error?: string;
   performanceMode: boolean;
 }

@@ -125,7 +125,7 @@ export default function InputSection({ lowPower = false }: { lowPower?: boolean 
         fixesApplied: data.fixes_applied || [],
         retryLimit: 5,
         iterationsUsed: data.iterations_used || 0,
-        rawResponse: data,
+        rawJson: data,
       };
 
       dispatch({ type: "FINISH_RUN", payload: results });
