@@ -136,7 +136,14 @@ export default function InputSection({ lowPower = false }: { lowPower?: boolean 
 
     } catch (error: any) {
       console.error("Failed to run agent:", error);
-      const errorMsg = error.response?.data?.detail || "System bridge failure. Check your parameters.";
+      let errorMsg = "System bridge failure. Check your parameters.";
+      
+      if (error.response?.data?.detail) {
+        errorMsg = error.response.data.detail;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
       dispatch({ type: "SET_ERROR", error: errorMsg });
     }
   };

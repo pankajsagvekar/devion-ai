@@ -17,7 +17,7 @@ for venv_bin in venv_dirs:
 
 from app.state import AgentState, TestResult
 from app.graph import create_graph
-from app.config import GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_REDIRECT_URI
+from app.config import GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_REDIRECT_URI, FRONTEND_URL, ENVIRONMENT
 
 app = FastAPI(title="Autonomous CI/CD Healing Agent")
 
@@ -68,11 +68,11 @@ async def auth_callback(code: str = Query(None)):
             raise HTTPException(status_code=400, detail=f"Failed to get token: {token_data.get('error_description', 'Unknown error')}")
             
         # Redirect back to frontend with the token
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:8080")
-        if not os.getenv("FRONTEND_URL") and os.getenv("ENVIRONMENT") == "production":
-             print("WARNING: FRONTEND_URL not set in production!")
+        redirect_url = f"{FRONTEND_URL}/?token={token_data['access_token']}"
+        if not os.getenv("FRONTEND_URL") and ENVIRONMENT == "production":
+             print("CRITICAL: FRONTEND_URL not set in production! Defaults to localhost.")
         
-        return RedirectResponse(f"{frontend_url}/?token={token_data['access_token']}")
+        return RedirectResponse(redirect_url)
 
 class RunRequest(BaseModel):
     repository_url: str
@@ -97,16 +97,42 @@ async def run_agent(request: RunRequest):
         start_time=time.time()
     )
 
-    graph = create_graph()
-    
-    # Run the workflow
-    # Note: In a real prod environment, this should be async/backgrounded
-    final_output = await graph.ainvoke(initial_state)
-    
-    # Build response: results_json fields + commit_log (not saved to results.json on disk)
-    response = dict(final_output["results_json"])
-    response["commit_log"] = [entry.model_dump() for entry in final_output.get("commit_log", [])]
-    return response
+    # Fast-fail for missing critical config
+    from app.config import GEMINI_API_KEY
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=500, detail="Backend misconfigured: GEMINI_API_KEY missing.")
+    if not request.github_token:
+        raise HTTPException(status_code=400, detail="Authentication required: No GitHub token provided.")
+
+    try:
+        graph = create_graph()
+        
+        # Run the workflow
+        print(f"DEBUG: Starting agent run for {request.team_name} (Branch: {branch_name})")
+        final_output = await graph.ainvoke(initial_state)
+        
+        # Build response: results_json fields + commit_log
+        results = final_output.get("results_json", {})
+        if not results:
+             print("WARNING: Agent finished but 'results_json' is empty.")
+             # Fallback payload to prevent frontend crash
+             results = {
+                 "final_status": "FAILED",
+                 "total_failures": 0,
+                 "total_fixes": 0,
+                 "iterations_used": 0,
+                 "score_calculation": {"final_score": 0}
+             }
+
+        response = dict(results)
+        response["commit_log"] = [entry.model_dump() for entry in final_output.get("commit_log", [])]
+        return response
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"ERROR: Agent crash during execution:\n{error_details}")
+        raise HTTPException(status_code=500, detail=f"Agent internal failure: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

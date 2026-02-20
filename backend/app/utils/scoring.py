@@ -24,6 +24,7 @@ def calculate_score(state: AgentState) -> Dict[str, Any]:
         "branch_name": state.branch_name,
         "total_failures": state.current_test_results.total_failures if state.current_test_results else 0,
         "total_fixes": len(state.fixes_applied),
+        "fixes_applied": state.fixes_applied,
         "iterations_used": state.iteration,
         "commit_count": state.commit_count,
         "final_status": state.final_status,
