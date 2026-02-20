@@ -3,20 +3,14 @@
 **Devion AI – Autonomous Code Review & Self-Healing System**
 A multi-agent system built with LangGraph and FastAPI that autonomously clones a repository, runs tests, analyzes failures, and pushes fixes.
 
----
-
 🌐 Deployment URL
 
 - **Frontend:** https://devion-ai.vercel.app/
 - **Backend API:** https://devion-ai.onrender.com
 
----
-
 🎥 LinkedIn Video URL
 
 🔗 https://linkedin.com/your-demo-video-link
-
----
 
 ## 🏗 Architecture Diagram
 
@@ -69,8 +63,6 @@ flowchart TB
     class F,G,H,I agent
 ```
 
----
-
 ## 💻 Tech Stack
 
 - **Frontend:** React 18, Vite, Tailwind CSS, Shadcn/UI, Framer Motion, Lucide Icons
@@ -78,8 +70,6 @@ flowchart TB
 - **AI Engine:** Google Gemini AI (for reasoning and autonomous bug fixing)
 - **Environment:** Docker (sandboxed test execution)
 - **Source Control:** GitHub API / OAuth
-
----
 
 ## 🐞 Supported Bug Types
 
@@ -91,8 +81,6 @@ Our agent correctly interprets and fixes the following categories of issues acco
 - **IMPORT:** Properly removes unused imports or resolves missing dependencies
 - **TYPE_ERROR:** Handles dynamic type mismatches
 - **LINTING:** Corrects code quality issues detected by Ruff and Pytest
-
----
 
 ## 🚀 Installation Instructions
 
@@ -123,8 +111,6 @@ cd frontend
 npm install
 ```
 
----
-
 ## ⚙️ Environment Setup
 
 Create a `.env` file in the **`backend/`** directory with the following variables:
@@ -138,8 +124,6 @@ FRONTEND_URL=https://your-frontend-url.com
 ```
 
 _(Ensure all OAuth configurations are appropriately mapped to your frontend redirect)._
-
----
 
 ## 💡 Usage Examples
 
@@ -166,15 +150,11 @@ _(Ensure all OAuth configurations are appropriately mapped to your frontend redi
 6. The agent will auto-clone, test, generate fixes, and push to the new exact branch: `TEAM_NAME_LEADER_NAME_AI_Fix`.
 7. Once finished, view the generated `results.json` run summary and timeline iterations on the Dashboard.
 
----
-
 ## 👥 Team Members
 
 - **Pankaj Sagvekar**
 - **Gauri Joshi**
 - **Shivani Ghulane**
 - **Rohit Gholap**
-
----
 
 © 2026 Devion AI - Built for RIFT 2026 Hackathon.
