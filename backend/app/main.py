@@ -69,6 +69,9 @@ async def auth_callback(code: str = Query(None)):
             
         # Redirect back to frontend with the token
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:8080")
+        if not os.getenv("FRONTEND_URL") and os.getenv("ENVIRONMENT") == "production":
+             print("WARNING: FRONTEND_URL not set in production!")
+        
         return RedirectResponse(f"{frontend_url}/?token={token_data['access_token']}")
 
 class RunRequest(BaseModel):

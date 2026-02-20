@@ -133,7 +133,8 @@ Create a `.env` file in the **`backend/`** directory with the following variable
 GEMINI_API_KEY=your_gemini_api_key
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
-GITHUB_REDIRECT_URI=http://localhost:8000/auth/callback
+GITHUB_REDIRECT_URI=https://your-backend-url.com/auth/callback
+FRONTEND_URL=https://your-frontend-url.com
 ```
 
 _(Ensure all OAuth configurations are appropriately mapped to your frontend redirect)._
@@ -157,7 +158,7 @@ _(Ensure all OAuth configurations are appropriately mapped to your frontend redi
 
 ### Executing the Agent
 
-1. Open the React Dashboard (`http://localhost:5173` typically).
+1. Open the React Dashboard (e.g. `http://localhost:8080` or your deployed URL).
 2. Authorize via GitHub using the **"Connect via GitHub"** button.
 3. Provide the **GitHub Repository URL** containing your buggy code.
 4. Input your **Team Name** and **Leader Name** _(e.g. "RIFT ORGANISERS" and "Saiyam Kumar")_.

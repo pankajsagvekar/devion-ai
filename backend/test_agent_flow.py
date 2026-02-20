@@ -8,7 +8,9 @@ def trigger_agent():
     load_dotenv()
     
     # Configuration
-    url = "http://localhost:8000/run-agent"
+    # Use the API URL from environment or fallback to localhost for local testing
+    base_url = os.getenv("VITE_API_URL", "http://localhost:8000")
+    url = f"{base_url}/run-agent"
     
     token = os.getenv("GITHUB_TOKEN") or input("Enter your GitHub token: ").strip()
     repo_url = os.getenv("TEST_REPO_URL") or input("Enter your repo URL (e.g., https://github.com/user/repo): ").strip()
